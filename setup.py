@@ -15,7 +15,6 @@
 # 
 
 from distutils.core import setup
-from setuptools import find_packages
 
 
 
@@ -28,6 +27,7 @@ setup(name = 'qPython',
       url = 'https://github.com/exxeleron/qPython',
       license = 'Apache License Version 2.0',
       
-      packages = find_packages(exclude = ['*.tests', '*.tests.*', 'tests.*', 'tests']),
+      packages = ['qpython', 'samples', ''],
+      package_data = {'': ['LICENSE', 'CHANGELOG.txt', 'README.md', 'requirements.txt']},
      )
 
