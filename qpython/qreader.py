@@ -1,18 +1,18 @@
-# 
+#
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 import struct
 import sys
@@ -136,8 +136,8 @@ class QReader(object):
             uncompressed_size = -8 + self._buffer.get_int()
             compressed_data = self._read_bytes(message_size - 12) if self._stream else self._buffer.raw(message_size - 12)
 
-            raw_data = self._uncompress(numpy.fromstring(compressed_data, dtype = numpy.byte), uncompressed_size)
-            raw_data = numpy.ndarray.tostring(numpy.array(raw_data))
+            raw_data = self._uncompress(numpy.fromstring(compressed_data, dtype = numpy.uint8), numpy.int32(uncompressed_size))
+            raw_data = numpy.ndarray.tostring(raw_data)
             self._buffer.wrap(raw_data)
         elif self._stream:
             raw_data = self._read_bytes(message_size - 8)
@@ -145,51 +145,60 @@ class QReader(object):
 
         return raw_data if raw else self._read_object()
 
-
     def _uncompress(self, data, uncompressed_size):
         if  uncompressed_size <= 0:
             raise QReaderException('Error while data decompression.')
 
-        n, r, f, s, p, i, d = 0, 0, 0, 0, 0, 0, 0
-        b = numpy.zeros(256, dtype = numpy.int32)
-        uncompressed = numpy.zeros(uncompressed_size, dtype = numpy.byte)
+        _0 = numpy.int32(0)
+        _1 = numpy.int32(1)
+        _2 = numpy.int32(2)
+        _128 = numpy.int32(128)
+        _255 = numpy.int32(255)
 
-        while s < len(uncompressed):
-            if i == 0:
-                f = 0xff & data[d]
-                d = d + 1
-                i = 1
+        n, r, s, p, sn, pp, sp = _0, _0, _0, _0, _0, _0, _0
+        i, d = _1, _1
+        f = _255 & data[_0]
 
-            if (f & i) != 0:
-                r = b[0xff & data[d]]
-                d = d + 1
-                uncompressed[s] = uncompressed[r]
-                s = s + 1
-                r = r + 1
-                uncompressed[s] = uncompressed[r]
-                s = s + 1
-                r = r + 1
-                n = 0xff & data[d]
-                d = d + 1
-                for m in xrange(n):
-                    uncompressed[s + m] = uncompressed[r + m]
+        ptrs = numpy.zeros(256, dtype = numpy.int32)
+        uncompressed = numpy.zeros(uncompressed_size, dtype = numpy.uint8)
+
+        while s < uncompressed_size:
+            if (f & i) != _0:
+                r = ptrs[_255 & data[d]]
+                n = _2 + (_255 & data[d + _1])
+                d += _2
+
+                sn = s + n
+                si = numpy.arange(s, sn)
+                uncompressed[si] = uncompressed[r : r + n]
+
+                pp = p + _1
+                sp = s + _2
+                while pp < sp:
+                    ptrs[(_255 & uncompressed[p]) ^ (_255 & uncompressed[pp])] = p
+                    p = pp
+                    pp += _1
+
+                s = sn
+                p = s
             else:
                 uncompressed[s] = data[d]
-                s = s + 1
-                d = d + 1
 
-            while p < s - 1:
-                b[(0xff & uncompressed[p]) ^ (0xff & uncompressed[p + 1])] = p
-                p = p + 1
+                s += _1
+                d += _1
 
-            if (f & i) != 0:
-                s = s + n
-                p = s
+                pp = p + _1
+                if pp < s:
+                    ptrs[(_255 & uncompressed[p]) ^ (_255 & uncompressed[pp])] = p
+                    p = pp
 
-            i *= 2
-
-            if i == 256:
-                i = 0
+            if i == _128:
+                if s < uncompressed_size:
+                    f = _255 & data[d]
+                    d += _1
+                    i = _1
+            else:
+                i *= _2
 
         return uncompressed
 
