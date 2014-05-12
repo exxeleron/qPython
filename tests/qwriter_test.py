@@ -176,7 +176,7 @@ EXPRESSIONS = OrderedDict((
 
 
 def init():
-    with open('QExpressions3.out', 'rb') as f:
+    with open('tests/QExpressions3.out', 'rb') as f:
         while True:
             query = f.readline().strip()
             binary = f.readline().strip()

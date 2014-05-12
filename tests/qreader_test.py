@@ -189,7 +189,7 @@ def compare(left, right):
 def test_reading():
     BINARY = OrderedDict()
     
-    with open('QExpressions3.out', 'rb') as f:
+    with open('tests/QExpressions3.out', 'rb') as f:
         while True:
             query = f.readline().strip()
             binary = f.readline().strip()
@@ -226,7 +226,7 @@ def test_reading():
 def test_reading_compressed():
     BINARY = OrderedDict()
     
-    with open('QCompressedExpressions3.out', 'rb') as f:
+    with open('tests/QCompressedExpressions3.out', 'rb') as f:
         while True:
             query = f.readline().strip()
             binary = f.readline().strip()
