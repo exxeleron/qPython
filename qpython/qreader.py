@@ -17,9 +17,10 @@
 import struct
 import sys
 
-from qtype import *  # @UnusedWildImport
-from qcollection import qlist, QDictionary, qtable, QTable, QKeyedTable
+from qpython.qtype import *  # @UnusedWildImport
+from qpython.qcollection import qlist, QDictionary, qtable, QTable, QKeyedTable
 from qpython.qtemporal import qtemporallist, from_raw_qtemporal
+
 
 
 class QReaderException(Exception):
@@ -93,14 +94,14 @@ class QReader(object):
     '''
     def read(self, source = None, raw = False):
         message = self.read_header(source)
-        message.data = self.read_data(message.size, source, raw, message.is_compressed)
+        message.data = self.read_data(message.size, raw, message.is_compressed)
 
         return message
 
 
-    ''' 
+    '''
     Reads and parses message header.
-    
+
     Arguments:
     source -- optional buffer containing source to be read, if not specified data is read from the wrapped stream
     '''
@@ -124,19 +125,19 @@ class QReader(object):
 
     '''
     Reads and optionally parses data part of a message.
-
-    Arguments:
-    source -- optional buffer containing source to be read, if not specified data is read from the wrapped stream
     '''
-    def read_data(self, message_size, source = None, raw = False, is_compressed = False):
+    def read_data(self, message_size, raw = False, is_compressed = False):
         if is_compressed:
             if self._stream:
                 self._buffer.wrap(self._read_bytes(4))
-
             uncompressed_size = -8 + self._buffer.get_int()
             compressed_data = self._read_bytes(message_size - 12) if self._stream else self._buffer.raw(message_size - 12)
 
-            raw_data = self._uncompress(numpy.fromstring(compressed_data, dtype = numpy.uint8), numpy.int32(uncompressed_size))
+            raw_data = numpy.fromstring(compressed_data, dtype = numpy.uint8)
+            if  uncompressed_size <= 0:
+                raise QReaderException('Error while data decompression.')
+
+            raw_data = self._uncompress(raw_data, uncompressed_size)
             raw_data = numpy.ndarray.tostring(raw_data)
             self._buffer.wrap(raw_data)
         elif self._stream:
@@ -145,52 +146,48 @@ class QReader(object):
 
         return raw_data if raw else self._read_object()
 
+
     def _uncompress(self, data, uncompressed_size):
-        if  uncompressed_size <= 0:
-            raise QReaderException('Error while data decompression.')
+        _0 = numpy.intc(0)
+        _1 = numpy.intc(1)
+        _2 = numpy.intc(2)
+        _128 = numpy.intc(128)
+        _255 = numpy.intc(255)
 
-        _0 = numpy.int32(0)
-        _1 = numpy.int32(1)
-        _2 = numpy.int32(2)
-        _128 = numpy.int32(128)
-        _255 = numpy.int32(255)
-
-        n, r, s, p, sn, pp, sp = _0, _0, _0, _0, _0, _0, _0
+        n, r, s, p = _0, _0, _0, _0
         i, d = _1, _1
         f = _255 & data[_0]
 
-        ptrs = numpy.zeros(256, dtype = numpy.int32)
+        ptrs = numpy.zeros(256, dtype = numpy.intc)
+        uncompressed_size = numpy.intc(uncompressed_size)
         uncompressed = numpy.zeros(uncompressed_size, dtype = numpy.uint8)
+        idx = numpy.arange(uncompressed_size, dtype = numpy.intc)
 
         while s < uncompressed_size:
-            if (f & i) != _0:
-                r = ptrs[_255 & data[d]]
-                n = _2 + (_255 & data[d + _1])
+            pp = p + _1
+
+            if f & i:
+                r = ptrs[data[d]]
+                n = _2 + (data[d + _1])
+                uncompressed[idx[s:s + n]] = uncompressed[r:r + n]
+
+                ptrs[uncompressed[p] ^ uncompressed[pp]] = p
+                if s == pp:
+                    ptrs[uncompressed[pp] ^ uncompressed[pp + _1]] = pp
+
                 d += _2
-
-                sn = s + n
-                si = numpy.arange(s, sn)
-                uncompressed[si] = uncompressed[r : r + n]
-
-                pp = p + _1
-                sp = s + _2
-                while pp < sp:
-                    ptrs[(_255 & uncompressed[p]) ^ (_255 & uncompressed[pp])] = p
-                    p = pp
-                    pp += _1
-
-                s = sn
+                r += _2
+                s = s + n
                 p = s
             else:
                 uncompressed[s] = data[d]
 
+                if pp == s:
+                    ptrs[uncompressed[p] ^ uncompressed[pp]] = p
+                    p = pp
+
                 s += _1
                 d += _1
-
-                pp = p + _1
-                if pp < s:
-                    ptrs[(_255 & uncompressed[p]) ^ (_255 & uncompressed[pp])] = p
-                    p = pp
 
             if i == _128:
                 if s < uncompressed_size:
@@ -198,7 +195,7 @@ class QReader(object):
                     d += _1
                     i = _1
             else:
-                i *= _2
+                i += i
 
         return uncompressed
 
