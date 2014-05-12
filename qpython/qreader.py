@@ -21,6 +21,10 @@ from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QDictionary, qtable, QTable, QKeyedTable
 from qpython.qtemporal import qtemporallist, from_raw_qtemporal
 
+try:
+    from qpython.fastutils import uncompress
+except:
+    from qpython.utils import uncompress
 
 
 class QReaderException(Exception):
@@ -137,7 +141,7 @@ class QReader(object):
             if  uncompressed_size <= 0:
                 raise QReaderException('Error while data decompression.')
 
-            raw_data = self._uncompress(raw_data, uncompressed_size)
+            raw_data = uncompress(raw_data, numpy.intc(uncompressed_size))
             raw_data = numpy.ndarray.tostring(raw_data)
             self._buffer.wrap(raw_data)
         elif self._stream:
@@ -145,59 +149,6 @@ class QReader(object):
             self._buffer.wrap(raw_data)
 
         return raw_data if raw else self._read_object()
-
-
-    def _uncompress(self, data, uncompressed_size):
-        _0 = numpy.intc(0)
-        _1 = numpy.intc(1)
-        _2 = numpy.intc(2)
-        _128 = numpy.intc(128)
-        _255 = numpy.intc(255)
-
-        n, r, s, p = _0, _0, _0, _0
-        i, d = _1, _1
-        f = _255 & data[_0]
-
-        ptrs = numpy.zeros(256, dtype = numpy.intc)
-        uncompressed_size = numpy.intc(uncompressed_size)
-        uncompressed = numpy.zeros(uncompressed_size, dtype = numpy.uint8)
-        idx = numpy.arange(uncompressed_size, dtype = numpy.intc)
-
-        while s < uncompressed_size:
-            pp = p + _1
-
-            if f & i:
-                r = ptrs[data[d]]
-                n = _2 + (data[d + _1])
-                uncompressed[idx[s:s + n]] = uncompressed[r:r + n]
-
-                ptrs[uncompressed[p] ^ uncompressed[pp]] = p
-                if s == pp:
-                    ptrs[uncompressed[pp] ^ uncompressed[pp + _1]] = pp
-
-                d += _2
-                r += _2
-                s = s + n
-                p = s
-            else:
-                uncompressed[s] = data[d]
-
-                if pp == s:
-                    ptrs[uncompressed[p] ^ uncompressed[pp]] = p
-                    p = pp
-
-                s += _1
-                d += _1
-
-            if i == _128:
-                if s < uncompressed_size:
-                    f = _255 & data[d]
-                    d += _1
-                    i = _1
-            else:
-                i += i
-
-        return uncompressed
 
 
     def _read_object(self):
