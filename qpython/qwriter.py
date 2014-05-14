@@ -131,7 +131,7 @@ class QWriter(object):
     def _write_string(self, data):
         if len(data) == 1:
             self._write_atom(ord(data), QCHAR)
-        else:  # serialize as a single character
+        else:
             self._buffer.write(struct.pack('=bxi', QSTRING, len(data)))
             self._buffer.write(data)
 
@@ -202,6 +202,9 @@ class QWriter(object):
         if isinstance(data, QList):
             qtype = -abs(data.meta.qtype)
 
+        if not qtype and data.dtype == '|S1':
+            qtype = QCHAR
+
         if not qtype:
             qtype = TO_Q.get(data.dtype.type, None)
 
@@ -214,6 +217,8 @@ class QWriter(object):
 
         if qtype == QGENERAL_LIST:
             self._write_generic_list(data)
+        elif qtype == QCHAR:
+            self._write_string(data.tostring())
         else:
             self._buffer.write(struct.pack('=bxi', -qtype, len(data)))
             if qtype == QSYMBOL:
