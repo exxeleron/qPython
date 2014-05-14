@@ -113,6 +113,8 @@ EXPRESSIONS = OrderedDict((
                    ('`jumps`over`a`lazy`dog',                        (numpy.array(['jumps', 'over', 'a', 'lazy', 'dog'], dtype=numpy.string_), 
                                                                       qlist(numpy.array(['jumps', 'over', 'a', 'lazy', 'dog']), qtype = QSYMBOL_LIST))),
                    ('`the`quick`brown`fox',                          numpy.array([numpy.string_('the'), numpy.string_('quick'), numpy.string_('brown'), numpy.string_('fox')], dtype=numpy.object)),
+                   ('``quick``fox',                                  qlist(numpy.array([qnull(QSYMBOL), numpy.string_('quick'), qnull(QSYMBOL), numpy.string_('fox')], dtype=numpy.object), qtype=QSYMBOL_LIST)),
+                   ('``',                                            qlist(numpy.array([qnull(QSYMBOL), qnull(QSYMBOL)], dtype=numpy.object), qtype=QSYMBOL_LIST)),
                    ('{x+y}',                                         QLambda('{x+y}')),
                    ('{x+y}[3]',                                      QLambda('{x+y}', numpy.int64(3))),
                    

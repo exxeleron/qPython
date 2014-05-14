@@ -251,7 +251,7 @@ class QReader(object):
         keys = self._read_object()
         values = self._read_object()
 
-        if  isinstance(keys, QTable):
+        if isinstance(keys, QTable):
             return QKeyedTable(keys, values)
         else:
             return QDictionary(keys, values)
@@ -381,15 +381,16 @@ class QReader(object):
                 return []
 
             while count < size:
-                new_position = self._data.find('\x00', new_position + 1)
+                new_position = self._data.find('\x00', new_position)
 
                 if new_position < 0:
                     raise QReaderException('Failed to read symbol from stream')
 
                 count += 1
+                new_position += 1
 
-            raw = self._data[self._position : new_position]
-            self._position = new_position + 1
+            raw = self._data[self._position : new_position - 1]
+            self._position = new_position
 
             return raw.split('\x00')
 
