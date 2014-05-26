@@ -55,8 +55,8 @@ class QDictionary(object):
     def __init__(self, keys, values):
         if not isinstance(keys, (QList, tuple, list)):
             raise ValueError('%s expects keys to be of type: QList, tuple or list. Actual type: %s' % (self.__class__.__name__, type(keys)))
-        if not isinstance(values, (QList, tuple, list)):
-            raise ValueError('%s expects values to be of type: QList, tuple or list. Actual type: %s' % (self.__class__.__name__, type(values)))
+        if not isinstance(values, (QTable, QList, tuple, list)):
+            raise ValueError('%s expects values to be of type: QTable, QList, tuple or list. Actual type: %s' % (self.__class__.__name__, type(values)))
 
         self.keys = keys
         self.values = values

@@ -33,7 +33,7 @@ else:
 
 
 setup(name = 'qPython',
-      version = '1.0 Beta 2',
+      version = '1.0 Beta 3',
       description = 'kdb+ interfacing library for Python',
 
       author = 'exxeleron',
