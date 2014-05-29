@@ -37,9 +37,17 @@ Instructions:
 
 
 #### Requirements
+ 
+To run, qPython requires:
  - numpy 1.8
+
+To tune performance critical parts of the code, additional requirements have to be met:
  - Cython 0.20.1
 
+To run Twisted sample, qPython requires:
+ - Twisted 13.2.0
 
 Required libraries can be installed using [pip](https://pypi.python.org/pypi/pip).
-Execute: `pip install -r requirements.txt`
+
+To install all the required dependencies, execute: `pip install -r requirements.txt` 
+To install minimal set of required dependencies, execute: `pip install -r requirements-minimal.txt` 
