@@ -17,7 +17,7 @@
 import numpy
 
 from qpython import MetaData
-from qpython.qtype import QTABLE, FROM_Q, QSYMBOL
+from qpython.qtype import QTABLE, FROM_Q
 
 
 class QList(numpy.ndarray):

@@ -1,18 +1,18 @@
-# 
+#
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 from qpython import MetaData
 from qcollection import QList
@@ -81,6 +81,12 @@ class QTemporalList(QList):
 
 def qtemporallist(array, **meta):
     '''Converts a numpy.array to q temporal list and enriches object instance with given meta data.'''
+    if meta and 'qtype' in meta:
+        qtype = -abs(meta['qtype'])
+        dtype = FROM_Q[qtype]
+        if dtype != array.dtype:
+            array = array.astype(dtype = dtype)
+
     result = array.view(QTemporalList)
     result.meta_init(**meta)
     return result
