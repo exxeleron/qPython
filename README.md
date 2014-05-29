@@ -50,4 +50,5 @@ To run Twisted sample, qPython requires:
 Required libraries can be installed using [pip](https://pypi.python.org/pypi/pip).
 
 To install all the required dependencies, execute: `pip install -r requirements.txt` 
+
 To install minimal set of required dependencies, execute: `pip install -r requirements-minimal.txt` 
