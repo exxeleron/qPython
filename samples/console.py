@@ -19,28 +19,24 @@ from qpython.qtype import QException
 
 
 if __name__ == '__main__':
-    q = qconnection.QConnection(host = 'localhost', port = 5000)
-    q.open()
-
-    print q
-    print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
-
-    while True:
-        try:
-            x = raw_input('Q)')
-        except EOFError:
-            print
-            break
-
-        if x == '\\\\':
-            break
-
-        try:
-            result = q(x)
-            print type(result)
-            print result
-        except QException, msg:
-            print 'q error: \'%s' % msg
-
-    q.close()
+    with qconnection.QConnection(host = 'localhost', port = 5000) as q:
+        print q
+        print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
+    
+        while True:
+            try:
+                x = raw_input('Q)')
+            except EOFError:
+                print
+                break
+    
+            if x == '\\\\':
+                break
+    
+            try:
+                result = q(x)
+                print type(result)
+                print result
+            except QException, msg:
+                print 'q error: \'%s' % msg
 

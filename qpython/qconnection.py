@@ -55,6 +55,15 @@ class QConnection(object):
 
         self.timeout = timeout
 
+        
+    def __enter__(self):
+        self.open()
+        return self
+
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
 
     '''Retrieves q protocol version estabilished with remote q service.'''
     @property

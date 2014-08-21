@@ -15,6 +15,15 @@ where:
 - `timeout` (optional) - socket timeout
 
 
+The `QConnection` class provides a context manager API and can be used with a `with` statement:
+
+```python
+with qconnection.QConnection(host = 'localhost', port = 5000) as q:
+    print q
+    print q('{`int$ til x}', 10)
+```
+
+
 ### Managing the remote connection
 
 Note that the connection is not established when the connector instance is created. The connection is initialized explicitly by calling the `open()` method.
