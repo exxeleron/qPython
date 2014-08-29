@@ -15,7 +15,6 @@
 #
 
 from qpython import MetaData
-from qcollection import QList
 from qtype import *  # @UnusedWildImport
 
 
@@ -60,36 +59,6 @@ class QTemporal(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-
-
-class QTemporalList(QList):
-    '''Represents a q list of datetime objects.'''
-    def meta_init(self, **meta):
-        self.meta = MetaData(**meta)
-
-    def __getitem__(self, idx):
-        return from_raw_qtemporal(numpy.ndarray.__getitem__(self, idx), -self.meta.qtype)
-
-    def __setitem__(self, idx, value):
-        numpy.ndarray.__setitem__(self, idx, to_raw_qtemporal(value, -self.meta.qtype))
-
-    def raw(self, idx):
-        return numpy.ndarray.__getitem__(self, idx)
-
-
-
-def qtemporallist(array, **meta):
-    '''Converts a numpy.array to q temporal list and enriches object instance with given meta data.'''
-    if meta and 'qtype' in meta:
-        qtype = -abs(meta['qtype'])
-        dtype = FROM_Q[qtype]
-        if dtype != array.dtype:
-            array = array.astype(dtype = dtype)
-
-    result = array.view(QTemporalList)
-    result.meta_init(**meta)
-    return result
 
 
 

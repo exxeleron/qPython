@@ -56,7 +56,8 @@ def qlist(array, adjust_dtype = True, **meta)
 
 which simplifies creation of `QList` objects. This method:
 - creates a `numpy` view `QList`
-- converts the input `numpy` array if the original `dtype` doesn’t match requested conversion, e.g.: `numpy.int16` array requested to be represented as a `QLONG_LIST`
+- if required, creates `numpy` array from the input `array`
+- converts the input `numpy` array if the original `dtype` doesn't match requested conversion, e.g.: `numpy.int16` array requested to be represented as a `QLONG_LIST`
 - optional meta information, e.g.: q type indicator: `qtype=QLONG_LIST`
 
 For example:
@@ -64,10 +65,12 @@ For example:
 # 1 2 3
 qlist(numpy.array([1, 2, 3], dtype=numpy.int64), qtype = QLONG_LIST)
 qlist(numpy.array([1, 2, 3]), qtype = QLONG_LIST)
+qlist([1, 2, 3], qtype = QLONG_LIST)
 
 # (0x01;0x02;0xff)
 qlist(numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte), qtype = QBYTE_LIST)
 qlist(numpy.array([0x01, 0x02, 0xff]), qtype = QBYTE_LIST)
+qlist([0x01, 0x02, 0xff], qtype = QBYTE_LIST)
 ```
 
 ### String and symbols
@@ -101,20 +104,20 @@ Atom q temporal types are represented as instances of `QTemporal` class, which i
 
 Lists of temporal values are represented as instances of `QTemporalList` class. This class wraps the raw q representation of temporal data (i.e. `long`s for `timestamp`s, `int`s for `month`s etc.) and provides accessors which allow to convert raw data to `QTemporal` instances in a lazy manner.
 
-In addition, the `qtemporal` module provides an utility method, which converts a `numpy.array` to q temporal list and enriches object instance with provided meta data:
+The `qcollection` utility method: `qlist` converts an input `array` to q temporal list (view on `numpy.array`) and enriches object instance with provided meta data:
 
 ```python
-def qtemporallist(array, **meta)
+def qlist(array, **meta)
 ```
 
 For example:
 ```python
 # 2001.01.01 2000.05.01 0Nd
-qtemporallist(numpy.array([to_raw_qtemporal(numpy.datetime64('2001-01-01', 'D'), qtype=QDATE), to_raw_qtemporal(numpy.datetime64('2000-05-01', 'D'), qtype=QDATE), qnull(QDATE)]), qtype=QDATE_LIST)
-qtemporallist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)
+qlist(numpy.array([to_raw_qtemporal(numpy.datetime64('2001-01-01', 'D'), qtype=QDATE), to_raw_qtemporal(numpy.datetime64('2000-05-01', 'D'), qtype=QDATE), qnull(QDATE)]), qtype=QDATE_LIST)
+qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)
 
 # 2000.01.04D05:36:57.600 0Np
-qtemporallist(numpy.array([long(279417600000000), qnull(QTIMESTAMP)]), qtype=QTIMESTAMP_LIST)
+qlist(numpy.array([long(279417600000000), qnull(QTIMESTAMP)]), qtype=QTIMESTAMP_LIST)
 ```
 
 
@@ -161,7 +164,7 @@ qtable(qlist(numpy.array(['abc', 'def']), qtype = QSYMBOL_LIST),
 # ([] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))
 qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
       [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
-       qtemporallist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)])
+       qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)])
 ```
 
 The keyed tables are represented via `QKeyedTable` instances, in which both keys and values are stored as a separate `QTable` instances.
@@ -173,7 +176,7 @@ QKeyedTable(qtable(qlist(numpy.array(['eid']), qtype = QSYMBOL_LIST),
                    [qlist(numpy.array([1001, 1002, 1003]), qtype = QLONG_LIST)]),
             qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
                    [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
-                    qtemporallist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
+                    qlist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
 ```
 
 ### Lambdas

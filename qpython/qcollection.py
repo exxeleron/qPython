@@ -17,7 +17,8 @@
 import numpy
 
 from qpython import MetaData
-from qpython.qtype import QTABLE, FROM_Q
+from qpython.qtype import QTABLE, FROM_Q, QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN
+from qpython.qtemporal import from_raw_qtemporal, to_raw_qtemporal
 
 
 class QList(numpy.ndarray):
@@ -36,15 +37,37 @@ class QList(numpy.ndarray):
 
 
 
+class QTemporalList(QList):
+    '''Represents a q list of datetime objects.'''
+    def meta_init(self, **meta):
+        self.meta = MetaData(**meta)
+
+    def __getitem__(self, idx):
+        return from_raw_qtemporal(numpy.ndarray.__getitem__(self, idx), -self.meta.qtype)
+
+    def __setitem__(self, idx, value):
+        numpy.ndarray.__setitem__(self, idx, to_raw_qtemporal(value, -self.meta.qtype))
+
+    def raw(self, idx):
+        return numpy.ndarray.__getitem__(self, idx)
+
+
+
 def qlist(array, adjust_dtype = True, **meta):
-    '''Converts a numpy.array to q vector and enriches object instance with given meta data.'''
+    '''Converts an input array to q vector and enriches object instance with given meta data. If necessary input array is converted from tuple or list to numpy.array.'''
+    if type(array) in (list, tuple):
+        array = numpy.array(array)
+    
+    if type(array) != numpy.ndarray:
+        raise ValueError('array parameter is expected to be of type: numpy.ndarray, list or tuple')
+    
     if meta and 'qtype' in meta:
         qtype = -abs(meta['qtype'])
         dtype = FROM_Q[qtype]
         if dtype != array.dtype:
             array = array.astype(dtype = dtype)
 
-    vector = array.view(QList)
+    vector = array.view(QList) if not qtype in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN] else array.view(QTemporalList)
     vector.meta_init(**meta)
     return vector
 

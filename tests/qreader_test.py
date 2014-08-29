@@ -22,8 +22,8 @@ import sys
 from collections import OrderedDict
 from qpython import qreader
 from qpython.qtype import *  # @UnusedWildImport
-from qpython.qcollection import qlist, QList, QDictionary, qtable, QKeyedTable
-from qpython.qtemporal import qtemporal, QTemporal, qtemporallist, QTemporalList
+from qpython.qcollection import qlist, QList, QTemporalList, QDictionary, qtable, QKeyedTable
+from qpython.qtemporal import qtemporal, QTemporal
 
 
 
@@ -32,28 +32,28 @@ EXPRESSIONS = OrderedDict((
                                                                       qlist(numpy.array([uuid.UUID('8c680a01-5a49-5aab-5a65-d4bfddb6a661'), qnull(QGUID)]), qtype=QGUID_LIST)),
                     ('"G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661"',    uuid.UUID('8c680a01-5a49-5aab-5a65-d4bfddb6a661')),
                     ('"G"$"00000000-0000-0000-0000-000000000000"',    uuid.UUID('00000000-0000-0000-0000-000000000000')),
-                    ('(2001.01m; 0Nm)',                               qtemporallist(numpy.array([12, qnull(QMONTH)]), qtype=QMONTH_LIST)),
+                    ('(2001.01m; 0Nm)',                               qlist(numpy.array([12, qnull(QMONTH)]), qtype=QMONTH_LIST)),
                     ('2001.01m',                                      qtemporal(numpy.datetime64('2001-01', 'M'), qtype=QMONTH)),
                     ('0Nm',                                           qtemporal(qnull(QMONTH), qtype=QMONTH)),
-                    ('2001.01.01 2000.05.01 0Nd',                     qtemporallist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)),
+                    ('2001.01.01 2000.05.01 0Nd',                     qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)),
                     ('2001.01.01',                                    qtemporal(numpy.datetime64('2001-01-01', 'D'), qtype=QDATE)),
                     ('0Nd',                                           qtemporal(qnull(QDATE), qtype=QDATE)),
-                    ('2000.01.04T05:36:57.600 0Nz',                   qtemporallist(numpy.array([3.234, qnull(QDATETIME)]), qtype=QDATETIME_LIST)),
+                    ('2000.01.04T05:36:57.600 0Nz',                   qlist(numpy.array([3.234, qnull(QDATETIME)]), qtype=QDATETIME_LIST)),
                     ('2000.01.04T05:36:57.600',                       qtemporal(numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), qtype=QDATETIME)),
                     ('0Nz',                                           qtemporal(qnull(QDATETIME), qtype=QDATETIME)),
-                    ('12:01 0Nu',                                     qtemporallist(numpy.array([721, qnull(QMINUTE)]), qtype=QMINUTE_LIST)),
+                    ('12:01 0Nu',                                     qlist(numpy.array([721, qnull(QMINUTE)]), qtype=QMINUTE_LIST)),
                     ('12:01',                                         qtemporal(numpy.timedelta64(721, 'm'), qtype=QMINUTE)),
                     ('0Nu',                                           qtemporal(qnull(QMINUTE), qtype=QMINUTE)),
-                    ('12:05:00 0Nv',                                  qtemporallist(numpy.array([43500, qnull(QSECOND)]), qtype=QSECOND_LIST)),
+                    ('12:05:00 0Nv',                                  qlist(numpy.array([43500, qnull(QSECOND)]), qtype=QSECOND_LIST)),
                     ('12:05:00',                                      qtemporal(numpy.timedelta64(43500, 's'), qtype=QSECOND)),
                     ('0Nv',                                           qtemporal(qnull(QSECOND), qtype=QSECOND)),
-                    ('12:04:59.123 0Nt',                              qtemporallist(numpy.array([43499123, qnull(QTIME)]), qtype=QTIME_LIST)),
+                    ('12:04:59.123 0Nt',                              qlist(numpy.array([43499123, qnull(QTIME)]), qtype=QTIME_LIST)),
                     ('12:04:59.123',                                  qtemporal(numpy.timedelta64(43499123, 'ms'), qtype=QTIME)),
                     ('0Nt',                                           qtemporal(qnull(QTIME), qtype=QTIME)),
-                    ('2000.01.04D05:36:57.600 0Np',                   qtemporallist(numpy.array([long(279417600000000), qnull(QTIMESTAMP)]), qtype=QTIMESTAMP_LIST)),
+                    ('2000.01.04D05:36:57.600 0Np',                   qlist(numpy.array([long(279417600000000), qnull(QTIMESTAMP)]), qtype=QTIMESTAMP_LIST)),
                     ('2000.01.04D05:36:57.600',                       qtemporal(numpy.datetime64('2000-01-04T05:36:57.600', 'ns'), qtype=QTIMESTAMP)),
                     ('0Np',                                           qtemporal(qnull(QTIMESTAMP), qtype=QTIMESTAMP)),
-                    ('0D05:36:57.600 0Nn',                            qtemporallist(numpy.array([long(20217600000000), qnull(QTIMESPAN)]), qtype=QTIMESPAN_LIST)),
+                    ('0D05:36:57.600 0Nn',                            qlist(numpy.array([long(20217600000000), qnull(QTIMESPAN)]), qtype=QTIMESPAN_LIST)),
                     ('0D05:36:57.600',                                qtemporal(numpy.timedelta64(20217600000000, 'ns'), qtype=QTIMESPAN)),
                     ('0Nn',                                           qtemporal(qnull(QTIMESPAN), qtype=QTIMESPAN)),
                      
@@ -143,13 +143,13 @@ EXPRESSIONS = OrderedDict((
                     ('([] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))', 
                                                                       qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
                                                                              [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
-                                                                              qtemporallist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)])),
+                                                                              qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)])),
                     ('([eid:1001 1002 1003] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))',
                                                                       QKeyedTable(qtable(qlist(numpy.array(['eid']), qtype = QSYMBOL_LIST),
                                                                                          [qlist(numpy.array([1001, 1002, 1003]), qtype = QLONG_LIST)]),
                                                                                   qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
                                                                                          [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
-                                                                                          qtemporallist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
+                                                                                          qlist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
                                                                       ),
                                                                                  
                   ))

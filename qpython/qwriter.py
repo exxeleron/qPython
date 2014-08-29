@@ -19,9 +19,8 @@ import struct
 import sys
 
 from qtype import *  # @UnusedWildImport
-from qcollection import QList, QDictionary, QTable
-from qpython.qtemporal import QTemporalList, QTemporal, to_raw_qtemporal
-from qpython.qcollection import qlist, QKeyedTable
+from qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable
+from qpython.qtemporal import QTemporal, to_raw_qtemporal
 
 
 class QWriterException(Exception):

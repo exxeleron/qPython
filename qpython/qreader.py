@@ -19,7 +19,7 @@ import sys
 
 from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QDictionary, qtable, QTable, QKeyedTable
-from qpython.qtemporal import qtemporallist, from_raw_qtemporal
+from qpython.qtemporal import from_raw_qtemporal
 
 try:
     from qpython.fastutils import uncompress
@@ -232,7 +232,7 @@ class QReader(object):
             data = numpy.fromstring(raw, dtype = conversion)
             if not self._is_native:
                 data.byteswap(True)
-            return qtemporallist(data, qtype = qtype, adjust_dtype = False)
+            return qlist(data, qtype = qtype, adjust_dtype = False)
         elif qtype == QGUID_LIST:
             data = numpy.array([self._read_guid() for x in xrange(length)])
             return qlist(data, qtype = qtype, adjust_dtype = False)
