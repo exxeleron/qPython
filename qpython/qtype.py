@@ -39,6 +39,7 @@ QDOUBLE         =  -0x09
 QDOUBLE_LIST    =  0x09
 QCHAR           =  -0x0a
 QSTRING         =  0x0a
+QSTRING_LIST    =  0x00
 QSYMBOL         =  -0x0b
 QSYMBOL_LIST    =  0x0b
 
@@ -74,24 +75,26 @@ ATOM_SIZE = ( 0, 1, 16, 0, 1, 2, 4, 8, 4, 8, 1, 0, 8, 4, 4, 8, 8, 4, 4, 4 )
 
 # mapping of q atoms to corresponding Python types 
 FROM_Q = {
-    QBOOL:      numpy.bool_,
-    QBYTE:      numpy.byte,
-    QGUID:      numpy.object_, # alternatively: 'V16' and store uuid lists in raw format with lazy loading/storing 
-    QSHORT:     numpy.int16,
-    QINT:       numpy.int32,
-    QLONG:      numpy.int64,
-    QFLOAT:     numpy.float32,
-    QDOUBLE:    numpy.float64,
-    QCHAR:      numpy.byte,
-    QSYMBOL:    numpy.string_,
-    QMONTH:     numpy.int32,
-    QDATE:      numpy.int32,
-    QDATETIME:  numpy.float64,
-    QMINUTE:    numpy.int32,
-    QSECOND:    numpy.int32,
-    QTIME:      numpy.int32,
-    QTIMESTAMP: numpy.int64,
-    QTIMESPAN:  numpy.int64,
+    QBOOL:          numpy.bool_,
+    QBYTE:          numpy.byte,
+    QGUID:          numpy.object_, 
+    QSHORT:         numpy.int16,
+    QINT:           numpy.int32,
+    QLONG:          numpy.int64,
+    QFLOAT:         numpy.float32,
+    QDOUBLE:        numpy.float64,
+    QCHAR:          numpy.byte,
+    QSYMBOL:        numpy.string_,
+    QMONTH:         numpy.int32,
+    QDATE:          numpy.int32,
+    QDATETIME:      numpy.float64,
+    QMINUTE:        numpy.int32,
+    QSECOND:        numpy.int32,
+    QTIME:          numpy.int32,
+    QTIMESTAMP:     numpy.int64,
+    QTIMESPAN:      numpy.int64,
+    # artificial qtype for convenient conversion of string lists
+    QSTRING_LIST:   numpy.object_,
     }
 
 

@@ -196,24 +196,24 @@ class QWriter(object):
 
     @serialize(numpy.ndarray, QList, QTemporalList)
     def _write_list(self, data, qtype = None):
-        if qtype:
+        if qtype is not None:
             qtype = -abs(qtype)
         
         if isinstance(data, QList):
             qtype = -abs(data.meta.qtype)
 
-        if not qtype and data.dtype == '|S1':
+        if qtype is None and data.dtype == '|S1':
             qtype = QCHAR
 
-        if not qtype:
+        if qtype is None:
             qtype = TO_Q.get(data.dtype.type, None)
 
-        if not qtype:
+        if qtype is None:
             # determinate type based on first element of the numpy array
             qtype = TO_Q.get(type(data[0]), QGENERAL_LIST)
             
         if self.protocol_version < 1 and (data.meta.qtype == QTIMESPAN_LIST or data.meta.qtype == QTIMESTAMP_LIST):
-                raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))
+            raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))
 
         if qtype == QGENERAL_LIST:
             self._write_generic_list(data)
