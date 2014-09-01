@@ -19,7 +19,7 @@ import struct
 import sys
 
 from qtype import *  # @UnusedWildImport
-from qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable
+from qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable, get_list_qtype
 from qpython.qtemporal import QTemporal, to_raw_qtemporal
 
 
@@ -198,18 +198,8 @@ class QWriter(object):
         if qtype is not None:
             qtype = -abs(qtype)
         
-        if isinstance(data, QList):
-            qtype = -abs(data.meta.qtype)
-
-        if qtype is None and data.dtype == '|S1':
-            qtype = QCHAR
-
         if qtype is None:
-            qtype = TO_Q.get(data.dtype.type, None)
-
-        if qtype is None:
-            # determinate type based on first element of the numpy array
-            qtype = TO_Q.get(type(data[0]), QGENERAL_LIST)
+            qtype = get_list_qtype(data)
             
         if self.protocol_version < 1 and (data.meta.qtype == QTIMESPAN_LIST or data.meta.qtype == QTIMESTAMP_LIST):
             raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))

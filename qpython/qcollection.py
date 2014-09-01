@@ -14,10 +14,8 @@
 #  limitations under the License.
 #
 
-import numpy
-
+from qtype import *  # @UnusedWildImport
 from qpython import MetaData
-from qpython.qtype import QTABLE, FROM_Q, QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN
 from qpython.qtemporal import from_raw_qtemporal, to_raw_qtemporal
 
 
@@ -43,31 +41,60 @@ class QTemporalList(QList):
         self.meta = MetaData(**meta)
 
     def __getitem__(self, idx):
-        return from_raw_qtemporal(numpy.ndarray.__getitem__(self, idx), -self.meta.qtype)
+        return from_raw_qtemporal(numpy.ndarray.__getitem__(self, idx), -abs(self.meta.qtype))
 
     def __setitem__(self, idx, value):
-        numpy.ndarray.__setitem__(self, idx, to_raw_qtemporal(value, -self.meta.qtype))
+        numpy.ndarray.__setitem__(self, idx, to_raw_qtemporal(value, --abs(self.meta.qtype)))
 
     def raw(self, idx):
         return numpy.ndarray.__getitem__(self, idx)
 
 
 
-def qlist(array, adjust_dtype = True, **meta):
+def get_list_qtype(array):
+    '''Guesses a corresponding qtype based on provided QList/numpy.ndarray instance.'''
+    if not isinstance(array, numpy.ndarray):
+        raise ValueError('array parameter is expected to be of type: numpy.ndarray, got: %s' % type(array))
+    
+    if isinstance(array, QList):
+        return -abs(array.meta.qtype)
+
+    qtype = None
+    
+    if array.dtype == '|S1':
+        qtype = QCHAR
+
+    if qtype is None:
+        qtype = TO_Q.get(array.dtype.type, None)
+
+    if qtype is None:
+        # determinate type based on first element of the numpy array
+        qtype = TO_Q.get(type(array[0]), QGENERAL_LIST)
+        
+    return qtype
+
+
+
+def qlist(array, **meta):
     '''Converts an input array to q vector and enriches object instance with given meta data. If necessary input array is converted from tuple or list to numpy.array.'''
     if type(array) in (list, tuple):
         array = numpy.array(array)
     
-    if type(array) != numpy.ndarray:
-        raise ValueError('array parameter is expected to be of type: numpy.ndarray, list or tuple')
-    
+    if not isinstance(array, numpy.ndarray):
+        raise ValueError('array parameter is expected to be of type: numpy.ndarray, list or tuple. Was: %s' % type(array))
+
+    qtype = None
+        
     if meta and 'qtype' in meta:
         qtype = -abs(meta['qtype'])
         dtype = FROM_Q[qtype]
         if dtype != array.dtype:
             array = array.astype(dtype = dtype)
 
-    vector = array.view(QList) if not qtype in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN] else array.view(QTemporalList)
+    qtype = get_list_qtype(array) if qtype is None else qtype
+    meta['qtype'] = qtype
+
+    vector = array.view(QList) if not meta['qtype'] in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN] else array.view(QTemporalList)
     vector.meta_init(**meta)
     return vector
 
@@ -137,21 +164,25 @@ def qtable(columns, data, **meta):
     if len(columns) != len(data):
         raise ValueError('Number of columns doesn`t match the data layout. %s vs %s' % (len(columns), len(data)))
 
-    if not meta or not 'qtype' in meta:
-        meta = {} if not meta else meta
+    meta = {} if not meta else meta
+    
+    if not 'qtype' in meta:
         meta['qtype'] = QTABLE
-
+        
     for i in xrange(len(columns)):
         if isinstance(data[i], str):
             # convert character list (represented as string) to numpy representation
             data[i] = numpy.array(list(data[i]), dtype = numpy.str)
+         
+        if columns[i] in meta:
+            data[i] = qlist(data[i], qtype = meta[columns[i]])
+        else:
+            data[i] = qlist(data[i])
+        
+        meta[columns[i]] = data[i].meta.qtype
 
     table = numpy.core.records.fromarrays(data, names = ','.join(columns))
     table = table.view(QTable)
-
-    for i in xrange(len(columns)):
-        if isinstance(data[i], QList):
-            meta[columns[i]] = data[i].meta.qtype
 
     table.meta_init(**meta)
     return table

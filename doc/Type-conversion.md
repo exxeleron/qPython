@@ -51,7 +51,7 @@ While serializing Python data to q following rules are applied:
 The `qcollection` module provides an utility method:
 
 ```python
-def qlist(array, adjust_dtype = True, **meta)
+def qlist(array, **meta)
 ```
 
 which simplifies creation of `QList` objects. This method:
