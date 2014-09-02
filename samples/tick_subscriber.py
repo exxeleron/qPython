@@ -14,14 +14,14 @@
 #  limitations under the License.
 # 
 
-import random
+import numpy
 import threading
-import time
+import sys
 
 from qpython import qconnection
 from qpython.qtype import QException
 from qpython.qconnection import MessageType
-from qpython.qcollection import QDictionary
+from qpython.qcollection import QTable
 
 
 class ListenerThread(threading.Thread):
@@ -47,42 +47,32 @@ class ListenerThread(threading.Thread):
                     print 'Unexpected message, expected message of type: ASYNC'
                     
                 print 'type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(message), message.type, message.size, message.is_compressed)
-                print message.data
                 
-                if isinstance(message.data, QDictionary):
-                    # stop after 10th query
-                    if message.data['queryid'] == 9:
-                        self.stop()
-                    
+                if isinstance(message.data, list):
+                    # unpack upd message
+                    if len(message.data) == 3 and message.data[0] == 'upd' and isinstance(message.data[2], QTable):
+                        for row in message.data[2]:
+                            print row
+                
             except QException, e:
                 print e
 
 
 if __name__ == '__main__':
-    # create connection object
-    q = qconnection.QConnection(host = 'localhost', port = 5000)
-    # initialize connection
-    q.open()
+    with qconnection.QConnection(host = 'localhost', port = 17010) as q:
+        print q
+        print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
+        print 'Press <ENTER> to close application'
 
-    print q
-    print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
-
-    try:
-        # definition of asynchronous multiply function
-        # queryid - unique identifier of function call - used to identify
-        # the result
-        # a, b - parameters to the query
-        q.sync('asynchMult:{[queryid;a;b] res:a*b; (neg .z.w)(`queryid`result!(queryid;res)) }');
+        # subscribe to tick
+        response = q.sync('.u.sub', numpy.string_('trade'), numpy.string_(''))
+        # get table model 
+        if isinstance(response[1], QTable):
+            print '%s table data model: %s' % (response[0], response[1].dtype)
 
         t = ListenerThread(q)
         t.start()
-         
-        for x in xrange(10):
-            a = random.randint(1, 100)
-            b = random.randint(1, 100)
-            print 'Asynchronous call with queryid=%s with arguments: %s, %s' % (x, a, b)
-            q.async('asynchMult', x, a, b);
         
-        time.sleep(1)
-    finally:
-        q.close()
+        sys.stdin.readline()
+        
+        t.stop()

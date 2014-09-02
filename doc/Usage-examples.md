@@ -2,6 +2,8 @@
 - [Asynchronous query](Usage-examples.md#asynchronous-query)
 - [Interactive console](Usage-examples.md#interactive-console)
 - [Twisted integration](Usage-examples.md#twisted-integration)
+- [Subscribing to tick service](Usage-examples.md#subscribing-to-tick-service)
+- [Data publisher](Usage-examples.md#data-publisher)
 
 ### Synchronous query
 Following example presents how to execute simple, synchronous query against a remote q process:
@@ -86,7 +88,7 @@ class ListenerThread(threading.Thread):
                 print message.data
                 
                 if isinstance(message.data, QDictionary):
-                    # stop adter 10th query
+                    # stop after 10th query
                     if message.data['queryid'] == 9:
                         self.stop()
                     
@@ -304,4 +306,147 @@ if __name__ == '__main__':
     factory = IPCClientFactory('user', 'pwd', onConnectSuccess, onConnectFail, onMessage, onError)
     reactor.connectTCP('localhost', 5000, factory)
     reactor.run()
+```
+
+## Subscribing to tick service
+This example depicts how to subscribe to standard kdb+ tickerplant service:
+
+```python
+import numpy
+import threading
+import sys
+
+from qpython import qconnection
+from qpython.qtype import QException
+from qpython.qconnection import MessageType
+from qpython.qcollection import QTable
+
+
+class ListenerThread(threading.Thread):
+    
+    def __init__(self, q):
+        super(ListenerThread, self).__init__()
+        self.q = q
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
+
+    def run(self):
+        while not self.stopped():
+            print '.'
+            try:
+                message = self.q.receive(data_only = False, raw = False) # retrieve entire message
+                
+                if message.type != MessageType.ASYNC:
+                    print 'Unexpected message, expected message of type: ASYNC'
+                    
+                print 'type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(message), message.type, message.size, message.is_compressed)
+                
+                if isinstance(message.data, list):
+                    # unpack upd message
+                    if len(message.data) == 3 and message.data[0] == 'upd' and isinstance(message.data[2], QTable):
+                        for row in message.data[2]:
+                            print row
+                
+            except QException, e:
+                print e
+
+
+if __name__ == '__main__':
+    with qconnection.QConnection(host = 'localhost', port = 17010) as q:
+        print q
+        print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
+        print 'Press <ENTER> to close application'
+
+        # subscribe to tick
+        response = q.sync('.u.sub', numpy.string_('trade'), numpy.string_(''))
+        # get table model 
+        if isinstance(response[1], QTable):
+            print '%s table data model: %s' % (response[0], response[1].dtype)
+
+        t = ListenerThread(q)
+        t.start()
+        
+        sys.stdin.readline()
+        
+        t.stop()
+```
+
+
+## Data publisher
+This example shows how to stream data to the kdb+ process using standard tickerplant API:
+
+```python
+import datetime
+import numpy
+import random
+import threading
+import sys
+import time
+
+from qpython import qconnection
+from qpython.qcollection import qlist
+from qpython.qtype import QException, QTIME_LIST, QSYMBOL_LIST, QFLOAT_LIST
+
+
+class PublisherThread(threading.Thread):
+    
+    def __init__(self, q):
+        super(PublisherThread, self).__init__()
+        self.q = q
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
+
+    def run(self):
+        while not self.stopped():
+            print '.'
+            try:
+                # publish data to tick
+                # function: .u.upd
+                # table: ask
+                self.q.sync('.u.upd', numpy.string_('ask'), self.get_ask_data())
+                
+                time.sleep(1)
+            except QException, e:
+                print e
+            except:
+                self.stop()
+                
+    def get_ask_data(self):
+        c = random.randint(1, 10)
+        
+        today = numpy.datetime64(datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0))
+         
+        time = [numpy.timedelta64((numpy.datetime64(datetime.datetime.now()) - today), 'ms') for x in xrange(c)]
+        instr = ['instr_%d' % random.randint(1, 100) for x in xrange(c)]
+        src = ['qPython' for x in xrange(c)]
+        ask = [random.random() * random.randint(1, 100) for x in xrange(c)]
+        
+        data = [qlist(time, qtype=QTIME_LIST), qlist(instr, qtype=QSYMBOL_LIST), qlist(src, qtype=QSYMBOL_LIST), qlist(ask, qtype=QFLOAT_LIST)]
+        print data
+        return data
+
+
+if __name__ == '__main__':
+    with qconnection.QConnection(host='localhost', port=17010) as q:
+        print q
+        print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
+        print 'Press <ENTER> to close application'
+
+        t = PublisherThread(q)
+        t.start()
+        
+        sys.stdin.readline()
+        
+        t.stop()
+        t.join()
 ```
