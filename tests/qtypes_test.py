@@ -14,8 +14,12 @@
 #  limitations under the License.
 # 
 
-from qpython.qtype import *  # @UnusedWildImport
+import pytest
 
+from qpython.qtype import *  # @UnusedWildImport
+from qpython.qcollection import *  # @UnusedWildImport
+from qpython.qtemporal import * # @UnusedWildImport
+from qpython.qtemporal import _MILIS_PER_DAY
 
 
 def test_is_null():
@@ -39,4 +43,196 @@ def test_is_null():
         assert is_null(qnull(t), t)
 
 
+
+def test_qdict():
+    with pytest.raises(ValueError):
+        QDictionary(qlist(numpy.array([1, 2, 3]), qtype=QLONG_LIST), qlist(numpy.array(['abc', 'cdefgh']), qtype = QSYMBOL_LIST))
+    
+    d = QDictionary(qlist(numpy.array([1, 2], dtype=numpy.int64), qtype=QLONG_LIST),
+                    qlist(numpy.array(['abc', 'cdefgh']), qtype = QSYMBOL_LIST))
+    
+    assert str(d) == "[1 2]!['abc' 'cdefgh']"
+    assert len(d) == 2
+
+    assert d[1] == 'abc'
+    with pytest.raises(KeyError):
+        d['abc']
+
+    assert numpy.int64(1) in d
+    assert not -1 in d
+    
+    i = 0
+    for k in d:
+        assert k == d.keys[i]
+        assert d[k] == d.values[i]
+        i += 1
+
+    i = 0
+    for kv in d.iteritems():
+        assert kv == (d.keys[i], d.values[i])
+        i += 1
+        
+    i = 0
+    for kv in d.items():
+        assert kv == (d.keys[i], d.values[i])
+        i += 1
+        
+    i = 0
+    for k in d.iterkeys():
+        assert k == d.keys[i]
+        assert d[k] == d.values[i]
+        i += 1
+        
+    i = 0
+    for v in d.itervalues():
+        assert v == d.values[i]
+        i += 1
+
+
+def test_qtable():
+    with pytest.raises(ValueError):
+        qtable(qlist(['name', 'iq'], qtype = QSYMBOL_LIST),
+               [qlist([], qtype = QSYMBOL_LIST)])
+    
+    with pytest.raises(ValueError):    
+        qtable(['name', 'iq'],
+               [['Beeblebrox', 'Prefect'], 
+                [98, 42, 126]],
+               name = QSYMBOL, iq = QLONG)
+        
+    t = qtable(['name', 'iq'],
+               [['Dent', 'Beeblebrox', 'Prefect'], 
+                [98, 42, 126]],
+               name = QSYMBOL, iq = QLONG)
+    
+    assert len(t) == 3
+    assert str(t) == "[('Dent', 98L) ('Beeblebrox', 42L) ('Prefect', 126L)]"
+    
+    assert t[t['name'] == 'Dent']
+    
+
+
+def test_qkeyedtable():
+    with pytest.raises(ValueError):
+        QKeyedTable(qtable(qlist(numpy.array(['eid']), qtype = QSYMBOL_LIST),
+                           [qlist(numpy.array([1001, 1002, 1003]), qtype = QLONG_LIST)]),
+                    ())
+        
+    with pytest.raises(ValueError):
+        QKeyedTable((),
+                    qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
+                           [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
+                            qlist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
+        
+    t = QKeyedTable(qtable(qlist(numpy.array(['eid']), qtype = QSYMBOL_LIST),
+                           [qlist(numpy.array([1001, 1002, 1003]), qtype = QLONG_LIST)]),
+                    qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
+                           [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
+                            qlist(numpy.array([366, 121, 255]), qtype = QINT_LIST)]))
+    
+    assert str(t) == "[(1001L,) (1002L,) (1003L,)]![('d1', 366) ('d2', 121) ('d3', 255)]"
+    assert len(t) == 3
+
+    assert str(t.keys[t.keys['eid'] == 1002]) == '[(1002L,)]'
+    assert str(t.values[t.keys['eid'] == 1002]) == "[('d2', 121)]"
+    
+    i = 0
+    for k in t:
+        assert k == t.keys[i]
+        i += 1
+
+    i = 0
+    for kv in t.iteritems():
+        assert kv == (t.keys[i], t.values[i])
+        i += 1
+        
+    i = 0
+    for kv in t.items():
+        assert kv == (t.keys[i], t.values[i])
+        i += 1
+        
+    i = 0
+    for k in t.iterkeys():
+        assert k == t.keys[i]
+        i += 1
+        
+    i = 0
+    for v in t.itervalues():
+        assert v == t.values[i]
+        i += 1
+    
+
+
+def test_qtemporallist():
+    na_dt = numpy.arange('1999-01-01', '2005-12-31', dtype='datetime64[D]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QDATE_LIST)
+    t = qlist(na, qtype=QDATE_LIST)
+    
+    for x in xrange(len(na)):
+        assert t.raw(x) == x - 365
+        assert t[x].raw == na_dt[x]
+        x += 1
+
+
+def test_array_to_raw_qtemporal():
+    na_dt = numpy.arange('1999-01', '2005-12', dtype='datetime64[M]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QMONTH_LIST)
+    
+    for x in xrange(len(na)):
+        assert na[x] == x - 12
+        x += 1
+        
+    na_dt = numpy.arange('1999-01-01', '2005-12-31', dtype='datetime64[D]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QDATE_LIST)
+    
+    for x in xrange(len(na)):
+        assert na[x] == x - 365
+        x += 1
+    
+    na_dt = numpy.arange('1999-01-01T00:00:00.000', '2001-01-04T05:36:57.600', 12345678, dtype='datetime64[ms]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QDATETIME_LIST)
+    step = 12346678. / _MILIS_PER_DAY
+    
+    assert na[0] == -365.0
+    assert abs(na[-1] - 369.1677) < 0.001
+    
+    for x in xrange(len(na)):
+        ref = (x * step) - 365
+        assert abs(na[x] - ref) < 0.1, '%s %s' %(na[x], ref)
+        
+    na_dt = numpy.arange('1999-01-01T00:00:00.000', '2001-01-04T05:36:57.600', 1234567890000, dtype='datetime64[ns]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QTIMESTAMP_LIST)
+    
+    ref = -31536000000000000L
+    for x in xrange(len(na)):
+        assert na[x] == ref
+        ref += 1234567890000L
+    
+    na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[m]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QMINUTE)
+    for x in xrange(len(na)):
+        assert na[x] == -1000000 + x * 12345
+        
+    na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[ms]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QTIME)
+    for x in xrange(len(na)):
+        assert na[x] == -1000000 + x * 12345
+        
+    na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[s]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QSECOND)
+    for x in xrange(len(na)):
+        assert na[x] == -1000000 + x * 12345
+    
+    na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[ns]')
+    na = array_to_raw_qtemporal(na_dt, qtype = QTIMESPAN)
+    for x in xrange(len(na)):
+        assert na[x] == -1000000 + x * 12345
+    
+
+
 test_is_null()
+test_qdict()
+test_qtable()
+test_qkeyedtable()
+test_qtemporallist()
+test_array_to_raw_qtemporal()

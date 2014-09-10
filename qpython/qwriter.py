@@ -84,7 +84,7 @@ class QWriter(object):
             if writer:
                 writer(self, data)
             else:
-                qtype = TO_Q.get(type(data), None)
+                qtype = Q_TYPE.get(type(data), None)
 
                 if qtype:
                     self._write_atom(data, qtype)

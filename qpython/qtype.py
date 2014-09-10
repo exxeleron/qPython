@@ -74,7 +74,7 @@ ATOM_SIZE = ( 0, 1, 16, 0, 1, 2, 4, 8, 4, 8, 1, 0, 8, 4, 4, 8, 8, 4, 4, 4 )
 
 
 # mapping of q atoms to corresponding Python types 
-FROM_Q = {
+PY_TYPE = {
     QBOOL:          numpy.bool_,
     QBYTE:          numpy.byte,
     QGUID:          numpy.object_, 
@@ -99,7 +99,7 @@ FROM_Q = {
 
 
 # mapping of Python types to corresponding q atoms 
-TO_Q = {
+Q_TYPE = {
     bool             : QBOOL,
     numpy.bool       : QBOOL,
     numpy.bool_      : QBOOL,

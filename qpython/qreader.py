@@ -202,7 +202,7 @@ class QReader(object):
     def _read_atom(self, qtype):
         try:
             fmt = STRUCT_MAP[qtype]
-            conversion = FROM_Q[qtype]
+            conversion = PY_TYPE[qtype]
             return conversion(self._buffer.get(fmt))
         except KeyError:
             raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
@@ -212,7 +212,7 @@ class QReader(object):
     def _read_temporal(self, qtype):
         try:
             fmt = STRUCT_MAP[qtype]
-            conversion = FROM_Q[qtype]
+            conversion = PY_TYPE[qtype]
             return from_raw_qtemporal(conversion(self._buffer.get(fmt)), qtype = qtype)
         except KeyError:
             raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
@@ -221,7 +221,7 @@ class QReader(object):
     def _read_list(self, qtype):
         self._buffer.skip()  # ignore attributes
         length = self._buffer.get_int()
-        conversion = FROM_Q.get(-qtype, None)
+        conversion = PY_TYPE.get(-qtype, None)
 
         if qtype == QSYMBOL_LIST:
             symbols = self._buffer.get_symbols(length)

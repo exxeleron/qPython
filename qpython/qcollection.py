@@ -21,7 +21,7 @@ from qpython.qtemporal import from_raw_qtemporal, to_raw_qtemporal
 
 class QList(numpy.ndarray):
     '''Represents a q list.'''
-    def meta_init(self, **meta):
+    def _meta_init(self, **meta):
         self.meta = MetaData(**meta)
 
     def __eq__(self, other):
@@ -37,7 +37,7 @@ class QList(numpy.ndarray):
 
 class QTemporalList(QList):
     '''Represents a q list of datetime objects.'''
-    def meta_init(self, **meta):
+    def _meta_init(self, **meta):
         self.meta = MetaData(**meta)
 
     def __getitem__(self, idx):
@@ -65,11 +65,11 @@ def get_list_qtype(array):
         qtype = QCHAR
 
     if qtype is None:
-        qtype = TO_Q.get(array.dtype.type, None)
+        qtype = Q_TYPE.get(array.dtype.type, None)
 
     if qtype is None:
         # determinate type based on first element of the numpy array
-        qtype = TO_Q.get(type(array[0]), QGENERAL_LIST)
+        qtype = Q_TYPE.get(type(array[0]), QGENERAL_LIST)
         
     return qtype
 
@@ -87,15 +87,15 @@ def qlist(array, **meta):
         
     if meta and 'qtype' in meta:
         qtype = -abs(meta['qtype'])
-        dtype = FROM_Q[qtype]
+        dtype = PY_TYPE[qtype]
         if dtype != array.dtype:
             array = array.astype(dtype = dtype)
 
     qtype = get_list_qtype(array) if qtype is None else qtype
     meta['qtype'] = qtype
 
-    vector = array.view(QList) if not meta['qtype'] in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN] else array.view(QTemporalList)
-    vector.meta_init(**meta)
+    vector = array.view(QList) if not -abs(meta['qtype']) in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN] else array.view(QTemporalList)
+    vector._meta_init(**meta)
     return vector
 
 
@@ -107,6 +107,8 @@ class QDictionary(object):
             raise ValueError('%s expects keys to be of type: QList, tuple or list. Actual type: %s' % (self.__class__.__name__, type(keys)))
         if not isinstance(values, (QTable, QList, tuple, list)):
             raise ValueError('%s expects values to be of type: QTable, QList, tuple or list. Actual type: %s' % (self.__class__.__name__, type(values)))
+        if len(keys) != len(values):
+            raise ValueError('Number of keys: %d doesn`t match number of values: %d' % (len(keys), len(values)))
 
         self.keys = keys
         self.values = values
@@ -143,12 +145,31 @@ class QDictionary(object):
 
     def __setitem__(self, key, value):
         self.values[self._find_key_(key)] = value
+        
+    def __len__(self):
+        return len(self.keys)
+    
+    def __iter__(self):
+        return iter(self.keys)
+    
+    def items(self):
+        return [(self.keys[x], self.values[x]) for x in xrange(len(self.keys))]
+
+    def iteritems(self):
+        for x in xrange(len(self.keys)):
+            yield (self.keys[x], self.values[x])
+
+    def iterkeys(self):
+        return iter(self.keys)
+
+    def itervalues(self):
+        return iter(self.values)
 
 
 
 class QTable(numpy.recarray):
     '''Represents a q table.'''
-    def meta_init(self, **meta):
+    def _meta_init(self, **meta):
         self.meta = MetaData(**meta)
 
     def __eq__(self, other):
@@ -184,7 +205,7 @@ def qtable(columns, data, **meta):
     table = numpy.core.records.fromarrays(data, names = ','.join(columns))
     table = table.view(QTable)
 
-    table.meta_init(**meta)
+    table._meta_init(**meta)
     return table
 
 
@@ -212,22 +233,11 @@ class QKeyedTable(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def get(self, key, default = None):
-        idx = 0
-        for k in self.keys:
-            if k == key:
-                return self.values[idx]
-            idx += 1
-        return default
-
-    def has_key(self, key):
-        for k in self.keys:
-            if k == key:
-                return True
-        return False
-
-    def __contains__(self, key):
-        return self.has_key(key)
+    def __len__(self):
+        return len(self.keys)
+    
+    def __iter__(self):
+        return iter(self.keys)
 
     def items(self):
         return [(self.keys[x], self.values[x]) for x in xrange(len(self.keys))]

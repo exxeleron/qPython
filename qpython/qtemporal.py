@@ -43,7 +43,7 @@ class QTemporal(object):
     def __init__(self, dt):
         self._datetime = dt
 
-    def meta_init(self, **meta):
+    def _meta_init(self, **meta):
         self.meta = MetaData(**meta)
 
     @property
@@ -65,7 +65,7 @@ class QTemporal(object):
 def qtemporal(dt, **meta):
     '''Converts a numpy.datetime64 to q temporal object and enriches object instance with given meta data.'''
     result = QTemporal(dt)
-    result.meta_init(**meta)
+    result._meta_init(**meta)
     return result
 
 
@@ -77,6 +77,16 @@ def from_raw_qtemporal(raw, qtype):
 
 def to_raw_qtemporal(dt, qtype):
     return _TO_Q[qtype](dt)
+
+
+
+def array_to_raw_qtemporal(array, qtype):
+    qtype = -abs(qtype)
+    dtype = PY_TYPE[qtype]
+    array = array.astype(dtype = dtype)
+    delta = _QEPOCH_DELTA[qtype]
+
+    return delta(array) if delta else array 
 
 
 
@@ -255,3 +265,19 @@ _TO_Q = {
          QTIMESTAMP:        _to_qtimestamp,
          QTIMESPAN:         _to_qtimespan,
          }
+
+
+
+__EPOCH_QDATETIME_MS = _EPOCH_QDATETIME.astype(float)
+__EPOCH_QTIMESTAMP_NS = _EPOCH_TIMESTAMP.astype(long)
+
+_QEPOCH_DELTA = {
+                 QMONTH:      lambda a: a - 360,
+                 QDATE:       lambda a: a - 10957,
+                 QDATETIME:   lambda a: (a - __EPOCH_QDATETIME_MS)  / _MILIS_PER_DAY,
+                 QMINUTE:     None,
+                 QSECOND:     None,
+                 QTIME:       None,
+                 QTIMESTAMP:  lambda a: a - __EPOCH_QTIMESTAMP_NS,
+                 QTIMESPAN:   None,
+                 }
