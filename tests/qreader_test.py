@@ -92,6 +92,7 @@ EXPRESSIONS = OrderedDict((
                     ('(5.5e; 8.5e)',                                  qlist(numpy.array([5.5, 8.5], dtype=numpy.float32), qtype=QFLOAT_LIST)),
                     ('3.23 6.46',                                     qlist(numpy.array([3.23, 6.46], dtype=numpy.float64), qtype=QDOUBLE_LIST)),
                     ('(1;`bcd;"0bc";5.5e)',                           [numpy.int64(1), numpy.string_('bcd'), '0bc', numpy.float32(5.5)]),
+                    ('(42;::;`foo)',                                  [numpy.int64(42), None, numpy.string_('foo')]),
                     ('`the`quick`brown`fox',                          qlist(numpy.array([numpy.string_('the'), numpy.string_('quick'), numpy.string_('brown'), numpy.string_('fox')], dtype=numpy.object), qtype=QSYMBOL_LIST)),
                     ('``quick``fox',                                  qlist(numpy.array([qnull(QSYMBOL), numpy.string_('quick'), qnull(QSYMBOL), numpy.string_('fox')], dtype=numpy.object), qtype=QSYMBOL_LIST)),
                     ('``',                                            qlist(numpy.array([qnull(QSYMBOL), qnull(QSYMBOL)], dtype=numpy.object), qtype=QSYMBOL_LIST)),

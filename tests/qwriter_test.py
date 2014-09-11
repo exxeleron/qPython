@@ -124,6 +124,7 @@ EXPRESSIONS = OrderedDict((
                                                                       qlist(numpy.array([3.23, 6.46]), qtype = QDOUBLE_LIST),
                                                                       qlist([3.23, 6.46], qtype = QDOUBLE_LIST))),
                    ('(1;`bcd;"0bc";5.5e)',                           [numpy.int64(1), numpy.string_('bcd'), '0bc', numpy.float32(5.5)]),
+                   ('(42;::;`foo)',                                  [numpy.int64(42), None, numpy.string_('foo')]),
                    ('(1;2h;3.234;"4")',                              [numpy.int64(1), numpy.int16(2), numpy.float64(3.234), '4']),
                    ('(`one;2 3;"456";(7;8 9))',                      [numpy.string_('one'), qlist(numpy.array([2, 3], dtype=numpy.int64), qtype=QLONG_LIST), '456', [numpy.int64(7), qlist(numpy.array([8, 9], dtype=numpy.int64), qtype=QLONG_LIST)]]),
                    

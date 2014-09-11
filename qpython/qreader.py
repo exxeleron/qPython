@@ -168,6 +168,7 @@ class QReader(object):
 
     @parse(QNULL)
     def _read_null(self, qtype = QNULL):
+        self._buffer.get_byte() # ignore
         return None
 
 
