@@ -1,4 +1,21 @@
 ------------------------------------------------------------------------------
+  qPython 1.0 Beta 5 [TBA]
+------------------------------------------------------------------------------
+
+  - Rework collections API
+  - Extend QConnection class with context manager API
+  - Fix: reading of generic null (::) embedded in lists
+  - Fix: sending generic lists as columns in tables
+
+------------------------------------------------------------------------------
+  qPython 1.0 Beta 4 [2014.07.04]
+------------------------------------------------------------------------------
+
+  - qtemporallist: force numpy.array type conversion in case of mismatch between meta.qtype and dtype of raw list
+  - Enable Travis CI integration
+  - Update project meta-information
+
+------------------------------------------------------------------------------
   qPython 1.0 Beta 3 [2014.05.26]
 ------------------------------------------------------------------------------
 
@@ -10,7 +27,6 @@
 
   - Speed improvement for pure python uncompress
   - Added (optional) Cython module for best performance of uncompress
-
 
 ------------------------------------------------------------------------------
   qPython 1.0 Beta [2014.04.02]
