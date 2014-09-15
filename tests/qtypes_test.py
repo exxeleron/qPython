@@ -51,7 +51,6 @@ def test_qdict():
     d = QDictionary(qlist(numpy.array([1, 2], dtype=numpy.int64), qtype=QLONG_LIST),
                     qlist(numpy.array(['abc', 'cdefgh']), qtype = QSYMBOL_LIST))
     
-    assert str(d) == "[1 2]!['abc' 'cdefgh']"
     assert len(d) == 2
 
     assert d[1] == 'abc'
@@ -106,9 +105,8 @@ def test_qtable():
                name = QSYMBOL, iq = QLONG)
     
     assert len(t) == 3
-    assert str(t) == "[('Dent', 98L) ('Beeblebrox', 42L) ('Prefect', 126L)]"
-    
-    assert t[t['name'] == 'Dent']
+    assert t[t['name'] == 'Dent']['name'] == 'Dent'
+    assert t[t['name'] == 'Dent']['iq'] == 98L
     
 
 
@@ -130,11 +128,11 @@ def test_qkeyedtable():
                            [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
                             qlist(numpy.array([366, 121, 255]), qtype = QINT_LIST)]))
     
-    assert str(t) == "[(1001L,) (1002L,) (1003L,)]![('d1', 366) ('d2', 121) ('d3', 255)]"
     assert len(t) == 3
 
-    assert str(t.keys[t.keys['eid'] == 1002]) == '[(1002L,)]'
-    assert str(t.values[t.keys['eid'] == 1002]) == "[('d2', 121)]"
+    assert t.keys[t.keys['eid'] == 1002]['eid'] == 1002L
+    assert t.values[t.keys['eid'] == 1002]['pos'][0] == 'd2'
+    assert t.values[t.keys['eid'] == 1002]['dates'][0] == 121
     
     i = 0
     for k in t:
