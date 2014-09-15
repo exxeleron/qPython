@@ -147,6 +147,9 @@ class QReader(object):
         elif self._stream:
             raw_data = self._read_bytes(message_size - 8)
             self._buffer.wrap(raw_data)
+            
+        if not self._stream and raw:
+            raw_data = self._buffer.raw(message_size - 8)
 
         return raw_data if raw else self._read_object()
 

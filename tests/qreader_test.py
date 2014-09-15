@@ -233,7 +233,22 @@ def test_reading():
         
         sys.stdout.write( '  %-75s' % query )
         try:
+            header = buffer_reader.read_header(source = buffer_.getvalue())
+            result = buffer_reader.read_data(message_size = header.size, is_compressed = header.is_compressed, raw = True)
+            assert compare(buffer_.getvalue()[8:], result), 'raw reading failed: %s' % (query)
+            
+            stream_reader = qreader.QReader(buffer_)
+            result = stream_reader.read(raw = True).data
+            assert compare(buffer_.getvalue()[8:], result), 'raw reading failed: %s' % (query)
+
             result = buffer_reader.read(source = buffer_.getvalue()).data
+            assert compare(value, result), 'deserialization failed: %s' % (query)
+            
+            header = buffer_reader.read_header(source = buffer_.getvalue())
+            result = buffer_reader.read_data(message_size = header.size, is_compressed = header.is_compressed)
+            assert compare(value, result), 'deserialization failed: %s' % (query)
+            
+            buffer_.seek(0)
             stream_reader = qreader.QReader(buffer_)
             result = stream_reader.read().data
             assert compare(value, result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value, result)
@@ -270,7 +285,13 @@ def test_reading_compressed():
         
         sys.stdout.write( '  %-75s' % query )
         try:
-            result = buffer_reader.read(buffer_.getvalue()).data
+            result = buffer_reader.read(source = buffer_.getvalue()).data
+            assert compare(value, result), 'deserialization failed: %s' % (query)
+            
+            header = buffer_reader.read_header(source = buffer_.getvalue())
+            result = buffer_reader.read_data(message_size = header.size, is_compressed = header.is_compressed)
+            assert compare(value, result), 'deserialization failed: %s' % (query)
+
             stream_reader = qreader.QReader(buffer_)
             result = stream_reader.read().data
             assert compare(value, result), 'deserialization failed: %s' % (query)
