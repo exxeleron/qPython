@@ -166,6 +166,8 @@ def test_qtemporallist():
     na = array_to_raw_qtemporal(na_dt, qtype = QDATE_LIST)
     t = qlist(na, qtype=QDATE_LIST)
     
+    assert t.meta.qtype == -abs(QDATE_LIST)
+    
     for x in xrange(len(na)):
         assert t.raw(x) == x - 365
         assert t[x].raw == na_dt[x]

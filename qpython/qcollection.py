@@ -40,10 +40,6 @@ class QList(numpy.ndarray):
 class QTemporalList(QList):
     '''An array object represents a q vector of datetime objects.'''
     
-    def _meta_init(self, **meta):
-        '''Initialises the meta-information.'''
-        self.meta = MetaData(**meta)
-
     def __getitem__(self, idx):
         return from_raw_qtemporal(numpy.ndarray.__getitem__(self, idx), -abs(self.meta.qtype))
 
