@@ -175,6 +175,7 @@ def test_qtemporallist():
 def test_array_to_raw_qtemporal():
     na_dt = numpy.arange('1999-01', '2005-12', dtype='datetime64[M]')
     na = array_to_raw_qtemporal(na_dt, qtype = QMONTH_LIST)
+    assert na.dtype == numpy.int32
     
     for x in xrange(len(na)):
         assert na[x] == x - 12
@@ -182,6 +183,7 @@ def test_array_to_raw_qtemporal():
         
     na_dt = numpy.arange('1999-01-01', '2005-12-31', dtype='datetime64[D]')
     na = array_to_raw_qtemporal(na_dt, qtype = QDATE_LIST)
+    assert na.dtype == numpy.int32
     
     for x in xrange(len(na)):
         assert na[x] == x - 365
@@ -189,6 +191,8 @@ def test_array_to_raw_qtemporal():
     
     na_dt = numpy.arange('1999-01-01T00:00:00.000', '2001-01-04T05:36:57.600', 12345678, dtype='datetime64[ms]')
     na = array_to_raw_qtemporal(na_dt, qtype = QDATETIME_LIST)
+    assert na.dtype == numpy.float64
+    
     step = 12346678. / _MILIS_PER_DAY
     
     assert na[0] == -365.0
@@ -200,6 +204,7 @@ def test_array_to_raw_qtemporal():
         
     na_dt = numpy.arange('1999-01-01T00:00:00.000', '2001-01-04T05:36:57.600', 1234567890000, dtype='datetime64[ns]')
     na = array_to_raw_qtemporal(na_dt, qtype = QTIMESTAMP_LIST)
+    assert na.dtype == numpy.int64
     
     ref = -31536000000000000L
     for x in xrange(len(na)):
@@ -208,21 +213,25 @@ def test_array_to_raw_qtemporal():
     
     na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[m]')
     na = array_to_raw_qtemporal(na_dt, qtype = QMINUTE)
+    assert na.dtype == numpy.int32
     for x in xrange(len(na)):
         assert na[x] == -1000000 + x * 12345
         
     na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[ms]')
     na = array_to_raw_qtemporal(na_dt, qtype = QTIME)
+    assert na.dtype == numpy.int32
     for x in xrange(len(na)):
         assert na[x] == -1000000 + x * 12345
         
     na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[s]')
     na = array_to_raw_qtemporal(na_dt, qtype = QSECOND)
+    assert na.dtype == numpy.int32
     for x in xrange(len(na)):
         assert na[x] == -1000000 + x * 12345
     
     na_dt = numpy.arange(-1000000, 1000000, 12345, dtype='timedelta64[ns]')
     na = array_to_raw_qtemporal(na_dt, qtype = QTIMESPAN)
+    assert na.dtype == numpy.int64
     for x in xrange(len(na)):
         assert na[x] == -1000000 + x * 12345
     

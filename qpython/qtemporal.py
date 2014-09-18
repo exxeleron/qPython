@@ -82,11 +82,14 @@ def to_raw_qtemporal(dt, qtype):
 
 def array_to_raw_qtemporal(array, qtype):
     qtype = -abs(qtype)
-    dtype = PY_TYPE[qtype]
-    array = array.astype(dtype = dtype)
-    delta = _QEPOCH_DELTA[qtype]
-
-    return delta(array) if delta else array 
+    conversion = _TO_RAW_LIST[qtype]
+    raw = array.astype(numpy.int64)
+    mask = raw == numpy.int64(-2**63)
+    
+    raw = conversion(raw) if conversion else raw
+    null = qnull(qtype)
+    raw = numpy.where(mask, null, raw)
+    return raw 
 
 
 
@@ -268,16 +271,17 @@ _TO_Q = {
 
 
 
-__EPOCH_QDATETIME_MS = _EPOCH_QDATETIME.astype(float)
+__EPOCH_QDATETIME_MS = _EPOCH_QDATETIME.astype(long)
+__MILIS_PER_DAY_FLOAT = float(_MILIS_PER_DAY)
 __EPOCH_QTIMESTAMP_NS = _EPOCH_TIMESTAMP.astype(long)
 
-_QEPOCH_DELTA = {
-                 QMONTH:      lambda a: a - 360,
-                 QDATE:       lambda a: a - 10957,
-                 QDATETIME:   lambda a: (a - __EPOCH_QDATETIME_MS)  / _MILIS_PER_DAY,
-                 QMINUTE:     None,
-                 QSECOND:     None,
-                 QTIME:       None,
+_TO_RAW_LIST = {
+                 QMONTH:      lambda a: (a - 360).astype(numpy.int32),
+                 QDATE:       lambda a: (a - 10957).astype(numpy.int32),
+                 QDATETIME:   lambda a: ((a - __EPOCH_QDATETIME_MS) / __MILIS_PER_DAY_FLOAT).astype(numpy.float64),
+                 QMINUTE:     lambda a: a.astype(numpy.int32),
+                 QSECOND:     lambda a: a.astype(numpy.int32),
+                 QTIME:       lambda a: a.astype(numpy.int32),
                  QTIMESTAMP:  lambda a: a - __EPOCH_QTIMESTAMP_NS,
                  QTIMESPAN:   None,
                  }

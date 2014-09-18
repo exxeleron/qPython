@@ -21,7 +21,7 @@ from collections import OrderedDict
 from qpython import qwriter
 from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QDictionary, qtable, QKeyedTable
-from qpython.qtemporal import qtemporal, to_raw_qtemporal
+from qpython.qtemporal import qtemporal, to_raw_qtemporal, array_to_raw_qtemporal
 
 BINARY = OrderedDict()
 
@@ -32,23 +32,28 @@ EXPRESSIONS = OrderedDict((
                    ('"G"$"00000000-0000-0000-0000-000000000000"',    uuid.UUID('00000000-0000-0000-0000-000000000000')),
                    ('(2001.01m; 0Nm)',                               (qlist(numpy.array([to_raw_qtemporal(numpy.datetime64('2001-01', 'M'), QMONTH), qnull(QMONTH)]), qtype=QMONTH_LIST),
                                                                       qlist(numpy.array([12, qnull(QMONTH)]), qtype=QMONTH_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2001-01', 'M'), numpy.datetime64('NaT', 'M')]), qtype = QMONTH_LIST), qtype = QMONTH_LIST),
                                                                       qlist([12, qnull(QMONTH)], qtype=QMONTH_LIST))),
                    ('2001.01m',                                      qtemporal(numpy.datetime64('2001-01', 'M'), qtype=QMONTH)),
                    ('0Nm',                                           qtemporal(qnull(QMONTH), qtype=QMONTH)),
                    ('2001.01.01 2000.05.01 0Nd',                     (qlist(numpy.array([to_raw_qtemporal(numpy.datetime64('2001-01-01', 'D'), qtype=QDATE), to_raw_qtemporal(numpy.datetime64('2000-05-01', 'D'), qtype=QDATE), qnull(QDATE)]), qtype=QDATE_LIST),
                                                                       qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2001-01-01', 'D'), numpy.datetime64('2000-05-01', 'D'), numpy.datetime64('NaT', 'D')]), qtype = QDATE_LIST), qtype = QDATE_LIST),
                                                                       qlist([366, 121, qnull(QDATE)], qtype=QDATE_LIST))),
                    ('2001.01.01',                                    qtemporal(numpy.datetime64('2001-01-01', 'D'), qtype=QDATE)),
                    ('0Nd',                                           qtemporal(qnull(QDATE), qtype=QDATE)),
                    ('2000.01.04T05:36:57.600 0Nz',                   (qlist(numpy.array([3.234, qnull(QDATETIME)]), qtype=QDATETIME_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), numpy.datetime64('nat', 'ms')]), qtype=QDATETIME_LIST), qtype=QDATETIME_LIST),
                                                                       qlist([3.234, qnull(QDATETIME)], qtype=QDATETIME_LIST))),
                    ('2000.01.04T05:36:57.600',                       qtemporal(numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), qtype=QDATETIME)),
                    ('0Nz',                                           qtemporal(qnull(QDATETIME), qtype=QDATETIME)),
                    ('12:01 0Nu',                                     (qlist(numpy.array([721, qnull(QMINUTE)]), qtype=QMINUTE_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.timedelta64(721, 'm'), numpy.timedelta64('nat', 'm')]), qtype=QMINUTE_LIST), qtype=QMINUTE_LIST),
                                                                       qlist([721, qnull(QMINUTE)], qtype=QMINUTE_LIST))),
                    ('12:01',                                         qtemporal(numpy.timedelta64(721, 'm'), qtype=QMINUTE)),
                    ('0Nu',                                           qtemporal(qnull(QMINUTE), qtype=QMINUTE)),
                    ('12:05:00 0Nv',                                  (qlist(numpy.array([43500, qnull(QSECOND)]), qtype=QSECOND_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.timedelta64(43500, 's'), numpy.timedelta64('nat', 's')]), qtype=QSECOND_LIST), qtype=QSECOND_LIST),
                                                                       qlist([43500, qnull(QSECOND)], qtype=QSECOND_LIST))),
                    ('12:05:00',                                      qtemporal(numpy.timedelta64(43500, 's'), qtype=QSECOND)),
                    ('0Nv',                                           qtemporal(qnull(QSECOND), qtype=QSECOND)),
@@ -57,10 +62,12 @@ EXPRESSIONS = OrderedDict((
                    ('12:04:59.123',                                  qtemporal(numpy.timedelta64(43499123, 'ms'), qtype=QTIME)),
                    ('0Nt',                                           qtemporal(qnull(QTIME), qtype=QTIME)),
                    ('2000.01.04D05:36:57.600 0Np',                   (qlist(numpy.array([long(279417600000000), qnull(QTIMESTAMP)]), qtype=QTIMESTAMP_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ns'), numpy.datetime64('nat', 'ns')]), qtype=QTIMESTAMP_LIST), qtype=QTIMESTAMP_LIST),
                                                                       qlist([long(279417600000000), qnull(QTIMESTAMP)], qtype=QTIMESTAMP_LIST))),
                    ('2000.01.04D05:36:57.600',                       qtemporal(numpy.datetime64('2000-01-04T05:36:57.600', 'ns'), qtype=QTIMESTAMP)),
                    ('0Np',                                           qtemporal(qnull(QTIMESTAMP), qtype=QTIMESTAMP)),
                    ('0D05:36:57.600 0Nn',                            (qlist(numpy.array([long(20217600000000), qnull(QTIMESPAN)]), qtype=QTIMESPAN_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.timedelta64(20217600000000, 'ns'), numpy.timedelta64('nat', 'ns')]), qtype=QTIMESPAN_LIST), qtype=QTIMESPAN_LIST),
                                                                       qlist([long(20217600000000), qnull(QTIMESPAN)], qtype=QTIMESPAN_LIST))),
                    ('0D05:36:57.600',                                qtemporal(numpy.timedelta64(20217600000000, 'ns'), qtype=QTIMESPAN)),
                    ('0Nn',                                           qtemporal(qnull(QTIMESPAN), qtype=QTIMESPAN)),
