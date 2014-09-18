@@ -14,6 +14,67 @@
 #  limitations under the License.
 # 
 
+'''
+The `qpython.qtype` module defines number of utility function which help to work
+with types mapping between q and Python.
+
+This module declares supported q types as constants, which can be used along
+with conversion functions e.g.: :func:`.qcollection.qlist` or 
+:func:`.qtemporal.qtemporal`. 
+
+List of q type codes:
+
+==================     =============
+q type name             q type code
+==================     =============
+QNULL                  0x65
+QGENERAL_LIST          0x00
+QBOOL                  -0x01
+QBOOL_LIST             0x01
+QGUID                  -0x02
+QGUID_LIST             0x02
+QBYTE                  -0x04
+QBYTE_LIST             0x04
+QSHORT                 -0x05
+QSHORT_LIST            0x05
+QINT                   -0x06
+QINT_LIST              0x06
+QLONG                  -0x07
+QLONG_LIST             0x07
+QFLOAT                 -0x08
+QFLOAT_LIST            0x08
+QDOUBLE                -0x09
+QDOUBLE_LIST           0x09
+QCHAR                  -0x0a
+QSTRING                0x0a
+QSTRING_LIST           0x00
+QSYMBOL                -0x0b
+QSYMBOL_LIST           0x0b
+QTIMESTAMP             -0x0c
+QTIMESTAMP_LIST        0x0c
+QMONTH                 -0x0d
+QMONTH_LIST            0x0d
+QDATE                  -0x0e
+QDATE_LIST             0x0e
+QDATETIME              -0x0f
+QDATETIME_LIST         0x0f
+QTIMESPAN              -0x10
+QTIMESPAN_LIST         0x10
+QMINUTE                -0x11
+QMINUTE_LIST           0x11
+QSECOND                -0x12
+QSECOND_LIST           0x12
+QTIME                  -0x13
+QTIME_LIST             0x13
+QDICTIONARY            0x63
+QKEYED_TABLE           0x63
+QTABLE                 0x62
+QLAMBDA                0x64
+QLAMBDA_PART           0x68
+QERROR                 -0x80  
+==================     =============
+'''
+
 import numpy
 import uuid
 
@@ -178,13 +239,26 @@ QNULLMAP = {
 
 
 def qnull(qtype):
-    '''Retrieve null value for requested q type.'''
+    '''Retrieve null value for requested q type.
+    
+    :Parameters:
+     - `qtype` (`integer`) - qtype indicator
+     
+    :returns: null value for specified q type
+    '''
     return QNULLMAP[qtype][1]
 
 
 
 def is_null(value, qtype):
-    '''Checks whether given value matches null value for a particular q type.'''
+    '''Checks whether given value matches null value for a particular q type.
+    
+    :Parameters:
+     - `qtype` (`integer`) - qtype indicator
+    
+    :returns: `boolean` - ``True`` if value is considered null for given type
+              ``False`` otherwise
+    '''
     return QNULLMAP[qtype][2](value)
 
 
@@ -196,7 +270,12 @@ class QException(Exception):
 
 
 class QLambda(object):
-    '''Represents a q lambda expression.'''
+    '''Represents a q lambda expression.
+    
+    :Parameters:
+     - `expression` (`string`) - lambda expression
+     - `parameters` (`list`) - list of parameters for lambda expression 
+    '''
     def __init__(self, expression, *parameters):
         self.expression = expression
         self.parameters = parameters
@@ -224,7 +303,11 @@ class QLambda(object):
 
 
 class Mapper(object):
-    '''Utility class for mapping execution via decorators.'''
+    '''Utility class for creating function execution map via decorators.
+    
+    :Parameters:
+     - `call_map` (`dictionary`) -  target execution map
+    '''
     def __init__(self, call_map):
         self.call_map = call_map
 

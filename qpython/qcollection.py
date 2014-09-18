@@ -20,8 +20,10 @@ from qpython.qtemporal import from_raw_qtemporal, to_raw_qtemporal
 
 
 class QList(numpy.ndarray):
-    '''Represents a q list.'''
+    '''An array object represents a q vector.'''
+
     def _meta_init(self, **meta):
+        '''Initialises the meta-information.'''
         self.meta = MetaData(**meta)
 
     def __eq__(self, other):
@@ -36,8 +38,10 @@ class QList(numpy.ndarray):
 
 
 class QTemporalList(QList):
-    '''Represents a q list of datetime objects.'''
+    '''An array object represents a q vector of datetime objects.'''
+    
     def _meta_init(self, **meta):
+        '''Initialises the meta-information.'''
         self.meta = MetaData(**meta)
 
     def __getitem__(self, idx):
@@ -47,12 +51,33 @@ class QTemporalList(QList):
         numpy.ndarray.__setitem__(self, idx, to_raw_qtemporal(value, --abs(self.meta.qtype)))
 
     def raw(self, idx):
+        '''Gets the raw representation of the datetime object at the specified 
+        index.
+        
+           >>> t = qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)
+           >>> print t[0]
+           2001-01-01 [metadata(qtype=-14)]
+           >>> print t.raw(0)
+           366
+        
+        :Parameters:
+         - `idx` (`integer`) - array index of the datetime object to be retrieved
+         
+        :returns: raw representation of the datetime object
+        '''
         return numpy.ndarray.__getitem__(self, idx)
 
 
 
 def get_list_qtype(array):
-    '''Guesses a corresponding qtype based on provided QList/numpy.ndarray instance.'''
+    '''Finds out a corresponding qtype for a specified `QList`/`numpy.ndarray` 
+    instance.
+    
+    :Parameters:
+     - `array` (`QList` or `numpy.ndarray`) - array to be checked
+    
+    :returns: `integer` - qtype matching the specified array object
+    '''
     if not isinstance(array, numpy.ndarray):
         raise ValueError('array parameter is expected to be of type: numpy.ndarray, got: %s' % type(array))
     
@@ -76,7 +101,49 @@ def get_list_qtype(array):
 
 
 def qlist(array, **meta):
-    '''Converts an input array to q vector and enriches object instance with given meta data. If necessary input array is converted from tuple or list to numpy.array.'''
+    '''Converts an input array to q vector and enriches object instance with 
+    meta data.
+
+    Returns a :class:`.QList` instance for non-datetime vectors. For datetime 
+    vectors :class:`.QTemporalList` is returned instead.
+
+    If q type retrieved via :func:`.get_list_qtype` doesn't match one provided 
+    as a `qtype` parameter guessed q type, underlying numpy.array is converted
+    to correct data type.
+    
+    `qPython` internally represents ``(0x01;0x02;0xff)`` q list as:
+    ``<class 'qpython.qcollection.QList'> dtype: int8 qtype: -4: [ 1  2 -1]``.
+    This object can be created by calling the :func:`.qlist` with following 
+    arguments:
+    
+    - `byte numpy.array`:
+       
+       >>> v = qlist(numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte))
+       >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+       <class 'qpython.qcollection.QList'> dtype: int8 qtype: -4: [ 1  2 -1]
+    
+    - `int32 numpy.array` with explicit conversion to `QBYTE_LIST`:   
+      
+       >>> v = qlist(numpy.array([1, 2, -1]), qtype = QBYTE_LIST)
+       >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+       <class 'qpython.qcollection.QList'> dtype: int8 qtype: -4: [ 1  2 -1]
+    
+    - plain Python `integer` list with explicit conversion to `QBYTE_LIST`:   
+       
+       >>> v = qlist([1, 2, -1], qtype = QBYTE_LIST)
+       >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+       <class 'qpython.qcollection.QList'> dtype: int8 qtype: -4: [ 1  2 -1]
+    
+    :Parameters:
+     - `array` (`tuple`, `list`, `numpy.array`) - input array to be converted
+    
+    :Kwargs:
+     - `qtype` (`integer` or `None`) - qtype indicator
+     
+    :returns: `QList` or `QTemporalList` - array representation of the list
+    
+    :raises: `ValueError` 
+    '''
     if type(array) in (list, tuple):
         array = numpy.array(array)
     
@@ -94,14 +161,31 @@ def qlist(array, **meta):
     qtype = get_list_qtype(array) if qtype is None else qtype
     meta['qtype'] = qtype
 
-    vector = array.view(QList) if not -abs(meta['qtype']) in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN] else array.view(QTemporalList)
+    vector = array.view(QList) if not meta['qtype'] in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN] else array.view(QTemporalList)
     vector._meta_init(**meta)
     return vector
 
 
 
 class QDictionary(object):
-    '''Represents a q dictionary.'''
+    '''Represents a q dictionary.
+    
+    Dictionary examples:
+    
+    >>> # q: 1 2!`abc`cdefgh
+    >>> print QDictionary(qlist(numpy.array([1, 2], dtype=numpy.int64), qtype=QLONG_LIST), 
+    ...                   qlist(numpy.array(['abc', 'cdefgh']), qtype = QSYMBOL_LIST))
+    [1 2]!['abc' 'cdefgh']
+       
+    >>> # q: (1;2h;3.234;"4")!(`one;2 3;"456";(7;8 9))
+    >>> print QDictionary([numpy.int64(1), numpy.int16(2), numpy.float64(3.234), '4'], 
+    ...                   [numpy.string_('one'), qlist(numpy.array([2, 3]), qtype=QLONG_LIST), '456', [numpy.int64(7), qlist(numpy.array([8, 9]), qtype=QLONG_LIST)]])
+    [1, 2, 3.234, '4']!['one', QList([2, 3], dtype=int64), '456', [7, QList([8, 9], dtype=int64)]]
+    
+    :Parameters:
+     - `keys` (`QList`, `tuple` or `list`) - dictionary keys
+     - `values` (`QList`, `QTable`, `tuple` or `list`) - dictionary values
+    '''
     def __init__(self, keys, values):
         if not isinstance(keys, (QList, tuple, list)):
             raise ValueError('%s expects keys to be of type: QList, tuple or list. Actual type: %s' % (self.__class__.__name__, type(keys)))
@@ -153,22 +237,30 @@ class QDictionary(object):
         return iter(self.keys)
     
     def items(self):
+        '''Return a copy of the dictionary's list of ``(key, value)`` pairs.'''
         return [(self.keys[x], self.values[x]) for x in xrange(len(self.keys))]
 
     def iteritems(self):
+        '''Return an iterator over the dictionary's ``(key, value)`` pairs.'''
         for x in xrange(len(self.keys)):
             yield (self.keys[x], self.values[x])
 
     def iterkeys(self):
+        '''Return an iterator over the dictionary's keys.'''
         return iter(self.keys)
 
     def itervalues(self):
+        '''Return an iterator over the dictionary's values.'''
         return iter(self.values)
 
 
 
 class QTable(numpy.recarray):
-    '''Represents a q table.'''
+    '''Represents a q table.
+    
+    Internal table data is stored as a `numpy.array` separately for each column.
+    This mimics the internal representation of tables in q.
+    '''
     def _meta_init(self, **meta):
         self.meta = MetaData(**meta)
 
@@ -181,7 +273,56 @@ class QTable(numpy.recarray):
 
 
 def qtable(columns, data, **meta):
-    '''Creates a QTable out of given column names and data, and initializes the meta data.'''
+    '''Creates a QTable out of given column names and data, and initialises the 
+    meta data.
+    
+    :class:`.QTable` is represented internally by `numpy.core.records.recarray`.
+    Data for each column is converted to :class:`.QList` via :func:`.qlist` 
+    function. If qtype indicator is defined for a column, this information
+    is used for explicit array conversion.
+    
+    Table examples:
+  
+      >>> # q: flip `name`iq!(`Dent`Beeblebrox`Prefect;98 42 126)
+      >>> t = qtable(qlist(numpy.array(['name', 'iq']), qtype = QSYMBOL_LIST), 
+      ...     [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect'])), 
+      ...      qlist(numpy.array([98, 42, 126], dtype=numpy.int64))])
+      >>> print '%s dtype: %s meta: %s: %s' % (type(t), t.dtype, t.meta, t)
+      <class 'qpython.qcollection.QTable'> dtype: [('name', 'S10'), ('iq', '<i8')] meta: metadata(iq=-7, qtype=98, name=-11): [('Dent', 98L) ('Beeblebrox', 42L) ('Prefect', 126L)]
+      
+      >>> # q: flip `name`iq!(`Dent`Beeblebrox`Prefect;98 42 126)
+      >>> t = qtable(qlist(numpy.array(['name', 'iq']), qtype = QSYMBOL_LIST),
+      ...           [qlist(['Dent', 'Beeblebrox', 'Prefect'], qtype = QSYMBOL_LIST), 
+      ...            qlist([98, 42, 126], qtype = QLONG_LIST)])
+      >>> print '%s dtype: %s meta: %s: %s' % (type(t), t.dtype, t.meta, t)
+      <class 'qpython.qcollection.QTable'> dtype: [('name', 'S10'), ('iq', '<i8')] meta: metadata(iq=-7, qtype=98, name=-11): [('Dent', 98L) ('Beeblebrox', 42L) ('Prefect', 126L)]
+      
+      >>> # q: flip `name`iq!(`Dent`Beeblebrox`Prefect;98 42 126)
+      >>> t = qtable(['name', 'iq'],
+      ...            [['Dent', 'Beeblebrox', 'Prefect'], 
+      ...             [98, 42, 126]],
+      ...            name = QSYMBOL, iq = QLONG)
+      >>> print '%s dtype: %s meta: %s: %s' % (type(t), t.dtype, t.meta, t) 
+      <class 'qpython.qcollection.QTable'> dtype: [('name', 'S10'), ('iq', '<i8')] meta: metadata(iq=-7, qtype=98, name=-11): [('Dent', 98L) ('Beeblebrox', 42L) ('Prefect', 126L)]
+      
+      >>> # q: flip `name`iq`fullname!(`Dent`Beeblebrox`Prefect;98 42 126;("Arthur Dent"; "Zaphod Beeblebrox"; "Ford Prefect"))
+      >>> t = qtable(('name', 'iq', 'fullname'),
+      ...            [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST), 
+      ...             qlist(numpy.array([98, 42, 126]), qtype = QLONG_LIST),
+      ...             qlist(numpy.array(["Arthur Dent", "Zaphod Beeblebrox", "Ford Prefect"]), qtype = QSTRING_LIST)])
+      <class 'qpython.qcollection.QTable'> dtype: [('name', 'S10'), ('iq', '<i8'), ('fullname', 'O')] meta: metadata(iq=-7, fullname=0, qtype=98, name=-11): [('Dent', 98L, 'Arthur Dent') ('Beeblebrox', 42L, 'Zaphod Beeblebrox') ('Prefect', 126L, 'Ford Prefect')]
+    
+    :Parameters:
+     - `columns` (list of `strings`) - table column names 
+     - `data` (list of lists) - list of columns containing table data
+    
+    :Kwargs:
+     - `meta` (`integer`) - qtype for particular column 
+    
+    :returns: `QTable` - representation of q table
+    
+    :raises: `ValueError`
+    '''
     if len(columns) != len(data):
         raise ValueError('Number of columns doesn`t match the data layout. %s vs %s' % (len(columns), len(data)))
 
@@ -211,7 +352,32 @@ def qtable(columns, data, **meta):
 
 
 class QKeyedTable(object):
-    '''Represents a q keyed table.'''
+    '''Represents a q keyed table.
+    
+    :class:`.QKeyedTable` is built with two :class:`.QTable`\s, one representing
+    keys and the other values.
+    
+    Keyed tables example:
+    
+        >>> # q: ([eid:1001 1002 1003] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))
+        >>> t = QKeyedTable(qtable(['eid'],
+        ...                [qlist(numpy.array([1001, 1002, 1003]), qtype = QLONG_LIST)]),
+        ...         qtable(['pos', 'dates'],
+        ...                [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
+        ...                 qlist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
+        >>> print '%s: %s' % (type(t), t)
+        >>> print '%s dtype: %s meta: %s' % (type(t.keys), t.keys.dtype, t.keys.meta)
+        >>> print '%s dtype: %s meta: %s' % (type(t.values), t.values.dtype, t.values.meta)
+        <class 'qpython.qcollection.QKeyedTable'>: [(1001L,) (1002L,) (1003L,)]![('d1', 366) ('d2', 121) ('d3', -2147483648)]
+        <class 'qpython.qcollection.QTable'> dtype: [('eid', '<i8')] meta: metadata(qtype=98, eid=-7)
+        <class 'qpython.qcollection.QTable'> dtype: [('pos', 'S2'), ('dates', '<i4')] meta: metadata(dates=-14, qtype=98, pos=-11)
+    
+    :Parameters:
+     - `keys` (`QTable`) - table keys
+     - `values` (`QTable`) - table values
+    
+    :raises: `ValueError`
+    '''
     def __init__(self, keys, values):
         if not isinstance(keys, QTable):
             raise ValueError('Keys array is required to be of type: QTable')
@@ -240,14 +406,18 @@ class QKeyedTable(object):
         return iter(self.keys)
 
     def items(self):
+        '''Return a copy of the keyed table's list of ``(key, value)`` pairs.'''
         return [(self.keys[x], self.values[x]) for x in xrange(len(self.keys))]
 
     def iteritems(self):
+        '''Return an iterator over the keyed table's ``(key, value)`` pairs.'''
         for x in xrange(len(self.keys)):
             yield (self.keys[x], self.values[x])
 
     def iterkeys(self):
+        '''Return an iterator over the keyed table's keys.'''
         return iter(self.keys)
 
     def itervalues(self):
+        '''Return an iterator over the keyed table's values.'''
         return iter(self.values)

@@ -23,16 +23,19 @@ from qpython.qwriter import QWriter, QWriterException
 
 
 class QConnectionException(Exception):
+    '''Raised when a connection to the q service cannot be estabilished.'''
     pass
 
 
 
 class QAuthenticationException(QConnectionException):
+    '''Raised when a connection to the q service is denied.''' 
     pass
 
 
 
 class MessageType(object):
+    '''Enumeration defining IPC protocol message types.'''
     ASYNC = 0
     SYNC = 1
     RESPONSE = 2
@@ -40,8 +43,23 @@ class MessageType(object):
 
 
 class QConnection(object):
-    '''
-    Connector class for interfacing with the q service. Provides methods for synchronous and asynchronous interaction.
+    '''Connector class for interfacing with the q service.
+    
+    Provides methods for synchronous and asynchronous interaction.
+    
+    The :class:`.QConnection` class provides a context manager API and can be 
+    used with a ``with`` statement::
+    
+        with qconnection.QConnection(host = 'localhost', port = 5000) as q:
+            print q
+            print q('{`int$ til x}', 10)
+    
+    :Parameters:
+     - `host` (`string`) - q service hostname
+     - `port` (`integer`) - q service port
+     - `username` (`string` or `None`) - username for q authentication/authorization
+     - `password` (`string` or `None`) - password for q authentication/authorization
+     - `timeout` (`nonnegative float` or `None`) - set a timeout on blocking socket operations
     '''
 
     def __init__(self, host, port, username = None, password = None, timeout = None):
@@ -65,14 +83,24 @@ class QConnection(object):
         self.close()
 
 
-    '''Retrieves q protocol version estabilished with remote q service.'''
     @property
     def protocol_version(self):
+        '''Retrieves established version of the IPC protocol.
+        
+        :returns: `integer` -- version of the IPC protocol
+        '''
         return self._protocol_version
 
 
-    '''Initializes connection to q service.'''
     def open(self):
+        '''Initialises connection to q service.
+        
+        If the connection hasn't been initialised yet, invoking the 
+        :func:`.open` creates a new socket and performs a handshake with a q 
+        service.
+        
+        :raises: :class:`.QConnectionException`, :class:`.QAuthenticationException` 
+        '''
         if not self._connection:
             if not self.host:
                 raise QConnectionException('Host cannot be None')
@@ -85,28 +113,34 @@ class QConnection(object):
 
 
     def _init_socket(self):
+        '''Initialises the socket used for communicating with a q service,'''
         self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._connection.connect((self.host, self.port))
         self._connection.settimeout(self.timeout)
 
 
-    '''Closes connection with q service.'''
     def close(self):
+        '''Closes connection with the q service.'''
         if self._connection:
             self._connection.close()
             self._connection = None
 
 
-    '''
-    Checks whether connection has been established. Connection is considered inactive when: 
-    - it has not been initialized, 
-    - it has been closed.
-    '''
     def is_connected(self):
+        '''Checks whether connection with a q service has been established. 
+        
+        Connection is considered inactive when: 
+         - it has not been initialised, 
+         - it has been closed.
+         
+        :returns: `bool` -- ``True`` if connection has been established, 
+                  ``False`` otherwise
+        '''
         return True if self._connection else False
 
 
     def _initialize(self):
+        '''Performs a IPC protocol handshake.'''
         credentials = self.username + ':' + self.password if self.password else ''
         self._connection.send(credentials + '\3\0')
         response = self._connection.recv(1)
@@ -128,15 +162,29 @@ class QConnection(object):
         return '%s@:%s:%s' % (self.username, self.host, self.port) if self.username else ':%s:%s' % (self.host, self.port)
 
 
-    '''
-    Performs a query against a q service.
-    
-    Arguments:
-    msg_type    -- type of the query to be executed (as defined in MessageType class)
-    query       -- query to be executed
-    parameters  -- parameters for the query
-    '''
     def query(self, msg_type, query, *parameters):
+        '''Performs a query against a q service.
+        
+        In typical use case, `query` is the name of the function to call and 
+        `parameters` are its parameters. When `parameters` list is empty, the 
+        query can be an arbitrary q expression (e.g. ``0 +/ til 100``).
+        
+        Calls a anonymous function with a single parameter:
+        
+            >>> q.query(qconnection.MessageType.SYNC,'{til x}', 10)
+        
+        Executes a q expression:
+        
+            >>> q.query(qconnection.MessageType.SYNC,'til 10')
+        
+        :Parameters:
+         - `msg_type` (one of the constants defined in :class:`.MessageType`) - 
+           type of the query to be executed
+         - `query` (`string`) - query to be executed
+         - `parameters` (`list` or `None`) - parameters for the query
+        
+        :raises: :class:`.QConnectionException`, :class:`.QWriterException`
+        '''
         if not self._connection:
             raise QConnectionException('Connection is not established.')
 
@@ -144,13 +192,54 @@ class QConnection(object):
             raise QWriterException('Too many parameters.')
 
         if not parameters or len(parameters) == 0:
-            return self._writer.write(query, msg_type)
+            self._writer.write(query, msg_type)
         else:
-            return self._writer.write([query] + list(parameters), msg_type)
+            self._writer.write([query] + list(parameters), msg_type)
 
 
-    '''Performs a synchronous query and returns parsed data.'''
     def sync(self, query, *parameters):
+        '''Performs a synchronous query against a q service and returns parsed 
+        data.
+        
+        In typical use case, `query` is the name of the function to call and 
+        `parameters` are its parameters. When `parameters` list is empty, the 
+        query can be an arbitrary q expression (e.g. ``0 +/ til 100``).
+        
+        Executes a q expression:
+        
+            >>> print q.sync('til 10')
+            [0 1 2 3 4 5 6 7 8 9]
+        
+        Executes an anonymous q function with a single parameter:
+        
+            >>> print q.sync('{til x}', 10)
+            [0 1 2 3 4 5 6 7 8 9]
+            
+        Executes an anonymous q function with two parameters:
+        
+            >>> print q.sync('{y + til x}', 10, 1)
+            [ 1  2  3  4  5  6  7  8  9 10]
+            
+            >>> print q.sync('{y + til x}', *[10, 1])
+            [ 1  2  3  4  5  6  7  8  9 10]
+        
+        The :func:`.sync` is called from the overloaded :func:`.__call__` 
+        function. This allows :class:`.QConnection` instance to be called as 
+        a function:
+        
+            >>> print q('{y + til x}', 10, 1)
+            [ 1  2  3  4  5  6  7  8  9 10]
+        
+        
+        :Parameters:
+         - `query` (`string`) - query to be executed
+         - `parameters` (`list` or `None`) - parameters for the query
+
+        :returns: query result parsed to Python data structures
+        
+        :raises: :class:`.QConnectionException`, :class:`.QWriterException`, 
+                 :class:`.QReaderException`
+        '''
         self.query(MessageType.SYNC, query, *parameters)
         response = self.receive(data_only = False)
 
@@ -161,21 +250,66 @@ class QConnection(object):
             raise QReaderException('Received message of type: %s where response was expected')
 
 
-    '''Performs an asynchronous query and returns without retrieving of the response.'''
     def async(self, query, *parameters):
+        '''Performs an asynchronous query and returns **without** retrieving of 
+        the response.
+        
+        In typical use case, `query` is the name of the function to call and 
+        `parameters` are its parameters. When `parameters` list is empty, the 
+        query can be an arbitrary q expression (e.g. ``0 +/ til 100``).
+        
+        Calls a anonymous function with a single parameter:
+        
+            >>> q.async('{til x}', 10)
+        
+        Executes a q expression:
+        
+            >>> q.async('til 10')
+        
+        :Parameters:
+         - `query` (`string`) - query to be executed
+         - `parameters` (`list` or `None`) - parameters for the query
+        
+        :raises: :class:`.QConnectionException`, :class:`.QWriterException`
+        '''
         self.query(MessageType.ASYNC, query, *parameters)
 
 
-    '''
-    Reads and (optionally) parses the response from q service.
-    
-    Arguments:
-    data_only  -- if True returns only data part of the message
-                  if False retuns data and message meta-information encapsulated in QMessage 
-    raw        -- if True returns raw data chunk instead of parsed data
-    '''
     def receive(self, data_only = True, raw = False):
-        result = self._reader.read(raw)
+        '''Reads and (optionally) parses the response from a q service.
+        
+        Retrieves query result along with meta-information:
+        
+            >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
+            >>> print q.receive(data_only = False, raw = False)
+            QMessage: message type: 2, data size: 13, is_compressed: False, data: 10
+
+        Retrieves parsed query result:
+
+            >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
+            >>> print q.receive(data_only = True, raw = False)
+            10
+
+        Retrieves not-parsed (raw) query result:
+        
+            >>> from binascii import hexlify
+            >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
+            >>> print hexlify(q.receive(data_only = True, raw = True))
+            fa0a000000
+                
+        :Parameters:
+         - `data_only` (`bool`) - if ``True`` returns only data part of the 
+           message, otherwise returns data and message meta-information 
+           encapsulated in :class:`.QMessage` instance 
+        
+         - `raw` (`bool`) - if ``True`` returns raw data chunk instead of 
+           parsed data
+        
+        :returns: depending on parameter flags: :class:`.QMessage` instance, 
+                  parsed message, raw data 
+        :raises: :class:`.QReaderException`
+        '''
+        result = self._reader.read(raw = raw)
         return result.data if data_only else result
 
 

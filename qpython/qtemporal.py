@@ -38,7 +38,15 @@ _QTIMESPAN_NULL = qnull(QTIMESPAN)
 
 
 class QTemporal(object):
-    '''Represents a q temporal value.'''
+    '''
+    Represents a q temporal value.
+    
+    The :class:`.QTemporal` wraps `numpy.datetime64` or `numpy.timedelta64`
+    along with meta-information like qtype indicator.
+    
+    :Parameters:
+     - `dt` (`numpy.datetime64` or `numpy.timedelta64`) - datetime to be wrapped
+    '''
 
     def __init__(self, dt):
         self._datetime = dt
@@ -48,6 +56,10 @@ class QTemporal(object):
 
     @property
     def raw(self):
+        '''Return wrapped datetime object.
+        
+        :returns: `numpy.datetime64` or `numpy.timedelta64` - wrapped datetime
+        '''
         return self._datetime
 
     def __str__(self):
@@ -63,7 +75,25 @@ class QTemporal(object):
 
 
 def qtemporal(dt, **meta):
-    '''Converts a numpy.datetime64 to q temporal object and enriches object instance with given meta data.'''
+    '''Converts a `numpy.datetime64` or `numpy.timedelta64` to 
+    :class:`.QTemporal` and enriches object instance with given meta data.
+    
+    Examples:
+    
+       >>> qtemporal(numpy.datetime64('2001-01-01', 'D'), qtype=QDATE)
+       2001-01-01 [metadata(qtype=-14)]
+       >>> qtemporal(numpy.timedelta64(43499123, 'ms'), qtype=QTIME)
+       43499123 milliseconds [metadata(qtype=-19)]
+       >>> qtemporal(qnull(QDATETIME), qtype=QDATETIME)
+       nan [metadata(qtype=-15)]
+    
+    :Parameters:
+     - `dt` (`numpy.datetime64` or `numpy.timedelta64`) - datetime to be wrapped
+    :Kwargs:
+     - `qtype` (`integer`) - qtype indicator
+    
+    :returns: `QTemporal` - wrapped datetime 
+    '''
     result = QTemporal(dt)
     result._meta_init(**meta)
     return result
@@ -71,16 +101,68 @@ def qtemporal(dt, **meta):
 
 
 def from_raw_qtemporal(raw, qtype):
+    '''
+    Converts raw numeric value to :class:`.QTemporal` instance.
+    
+    Actual conversion applied to raw numeric value depends on `qtype` parameter.
+    
+    :Parameters:
+     - `raw` (`integer`, `float`) - raw representation to be converted
+     - `qtype` (`integer`) - qtype indicator
+     
+    :returns: `QTemporal` - converted and wrapped datetime
+    '''
     return qtemporal(_FROM_Q[qtype](raw), qtype = qtype)
 
 
 
 def to_raw_qtemporal(dt, qtype):
+    '''
+    Converts datetime/timedelta instance to raw numeric value.
+    
+    Actual conversion applied to datetime/timedelta instance depends on `qtype` 
+    parameter.
+    
+    :Parameters:
+     - `dt` (`numpy.datetime64` or `numpy.timedelta64`) - datetime/timedelta
+       object to be converted
+     - `qtype` (`integer`) - qtype indicator
+     
+    :returns: `integer`, `float` - raw numeric value
+    '''
     return _TO_Q[qtype](dt)
 
 
 
 def array_to_raw_qtemporal(array, qtype):
+    '''
+    Converts `numpy.array` containing ``datetime64``/``timedelta64`` to raw
+    q representation.
+    
+    Examples:
+    
+      >>> na_dt = numpy.arange('1999-01-01', '2005-12-31', dtype='datetime64[D]')
+      >>> print array_to_raw_qtemporal(na_dt, qtype = QDATE_LIST)
+      [-365 -364 -363 ..., 2188 2189 2190]
+      >>> array_to_raw_qtemporal(numpy.arange(-20, 30, dtype='int32'), qtype = QDATE_LIST)
+      Traceback (most recent call last):
+        ...
+      ValueError: array.dtype is expected to be of type: datetime64 or timedelta64. Was: int32
+    
+    :Parameters:
+     - `array` (`numpy.array`) - numpy datetime/timedelta array to be converted
+     - `qtype` (`integer`) - qtype indicator
+    
+    :returns: `numpy.array` - numpy array with raw values
+    
+    :raises: `ValueError`
+    '''
+    if not isinstance(array, numpy.ndarray):
+        raise ValueError('array parameter is expected to be of type: numpy.ndarray. Was: %s' % type(array))
+    
+    if not (str(array.dtype).startswith('datetime64') or str(array.dtype).startswith('timedelta64')):
+        raise ValueError('array.dtype is expected to be of type: datetime64 or timedelta64. Was: %s' % array.dtype)
+    
     qtype = -abs(qtype)
     conversion = _TO_RAW_LIST[qtype]
     raw = array.astype(numpy.int64)

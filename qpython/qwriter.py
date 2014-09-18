@@ -37,10 +37,14 @@ ENDIANESS = '\1' if sys.byteorder == 'little' else '\0'
 class QWriter(object):
     '''
     Provides serialization to q IPC protocol.
+    
+    :Parameters:
+     - `stream` (`socket` or `None`) - stream for data serialization
+     -  `protocol_version` (`integer`) - version IPC protocol
     '''
 
-    writer_map = {}
-    serialize = Mapper(writer_map)
+    _writer_map = {}
+    serialize = Mapper(_writer_map)
 
 
     def __init__(self, stream, protocol_version):
@@ -48,8 +52,17 @@ class QWriter(object):
         self.protocol_version = protocol_version
 
 
-    '''Serializes and puts to a wrapped stream single data object.'''
     def write(self, data, msg_type):
+        '''Serializes and pushes single data object to a wrapped stream.
+        
+        :Parameters:
+         - `data` - data to be serialized
+         - `msg_type` (one of the constants defined in :class:`.MessageType`) -
+           type of the message
+        
+        :returns: if wraped stream is ``None`` serialized data, 
+                  otherwise ``None`` 
+        '''
         self._buffer = cStringIO.StringIO()
 
         # header and placeholder for message size
@@ -63,7 +76,6 @@ class QWriter(object):
         self._buffer.write(struct.pack('i', data_size))
 
         # write data to socket
-        # print hexlify(self._buffer.getvalue())
         if self._stream:
             self._stream.send(self._buffer.getvalue())
         else:
@@ -79,7 +91,7 @@ class QWriter(object):
             else:
                 data_type = type(data)
 
-            writer = self.writer_map.get(data_type, None)
+            writer = self._writer_map.get(data_type, None)
 
             if writer:
                 writer(self, data)

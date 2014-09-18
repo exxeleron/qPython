@@ -15,6 +15,16 @@ For more details please refer to the `documentation`_.
 Building package
 ----------------
 
+Documentation
+~~~~~~~~~~~~~
+
+qPython documentation is generated with help of `Sphinx`_ document generator.
+In order to build the documentation, including the API docs, execute: 
+``make html`` from the doc directory.
+
+Documentation is built into the: ``doc/build/html/`` directory.
+
+
 Compile Cython extensions
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -66,5 +76,6 @@ To install all the required dependencies, execute: ``pip install -r requirements
 To install minimal set of required dependencies, execute: ``pip install -r requirements-minimal.txt``
 
 .. _Cython: http://cython.org/
-.. _pip: https://pypi.python.org/pypi/pip
-.. _documentation: https://github.com/exxeleron/qPython/blob/master/doc
+.. _Sphinx: http://sphinx-doc.org/
+.. _pip: http://pypi.python.org/pypi/pip
+.. _documentation: http://github.com/exxeleron/qPython/blob/master/doc/source/index.rst
