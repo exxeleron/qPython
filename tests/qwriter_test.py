@@ -146,7 +146,7 @@ EXPRESSIONS = OrderedDict((
                                                                       qlist(numpy.array(['quick', 'brown', 'fox', 'jumps', 'over', 'a lazy', 'dog']), qtype = QSTRING_LIST),
                                                                       qlist(['quick', 'brown', 'fox', 'jumps', 'over', 'a lazy', 'dog'], qtype = QSTRING_LIST))),
                    ('{x+y}',                                         QLambda('{x+y}')),
-                   ('{x+y}[3]',                                      QLambda('{x+y}', numpy.int64(3))),
+                   ('{x+y}[3]',                                      QProjection([QLambda('{x+y}'), numpy.int64(3)])),
                    
                    ('(enlist `a)!(enlist 1)',                        (QDictionary(qlist(numpy.array(['a']), qtype = QSYMBOL_LIST), 
                                                                                   qlist(numpy.array([1], dtype=numpy.int64), qtype=QLONG_LIST)),

@@ -1,18 +1,18 @@
-# 
+#
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 import cStringIO
 import struct
@@ -154,7 +154,7 @@ class QWriter(object):
             self._buffer.write(data)
         self._buffer.write('\0')
 
-        
+
     @serialize(uuid.UUID)
     def _write_guid(self, data):
         self._buffer.write(struct.pack('=b', QGUID))
@@ -166,7 +166,7 @@ class QWriter(object):
         try:
             if self.protocol_version < 1 and (data.meta.qtype == QTIMESPAN or data.meta.qtype == QTIMESTAMP):
                 raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))
-            
+
             self._buffer.write(struct.pack('=b', data.meta.qtype))
             fmt = STRUCT_MAP[data.meta.qtype]
             self._buffer.write(struct.pack(fmt, to_raw_qtemporal(data.raw, data.meta.qtype)))
@@ -176,17 +176,16 @@ class QWriter(object):
 
     @serialize(QLambda)
     def _write_lambda(self, data):
-        if not data.parameters:
-            self._buffer.write(struct.pack('=b', QLAMBDA))
-            self._buffer.write('\0')
-            self._write_string(data.expression)
-        else:
-            self._buffer.write(struct.pack('=bi', QLAMBDA_PART, len(data.parameters) + 1))
-            self._buffer.write(struct.pack('=b', QLAMBDA))
-            self._buffer.write('\0')
-            self._write_string(data.expression)
-            for parameter in data.parameters:
-                self._write(parameter)
+        self._buffer.write(struct.pack('=b', QLAMBDA))
+        self._buffer.write('\0')
+        self._write_string(data.expression)
+
+
+    @serialize(QProjection)
+    def _write_projection(self, data):
+        self._buffer.write(struct.pack('=bi', QPROJECTION, len(data.parameters)))
+        for parameter in data.parameters:
+            self._write(parameter)
 
 
     @serialize(QDictionary, QKeyedTable)
@@ -209,10 +208,10 @@ class QWriter(object):
     def _write_list(self, data, qtype = None):
         if qtype is not None:
             qtype = -abs(qtype)
-        
+
         if qtype is None:
             qtype = get_list_qtype(data)
-            
+
         if self.protocol_version < 1 and (data.meta.qtype == QTIMESPAN_LIST or data.meta.qtype == QTIMESTAMP_LIST):
             raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))
 
@@ -228,7 +227,7 @@ class QWriter(object):
             elif qtype == QGUID:
                 if self.protocol_version < 3:
                     raise QWriterException('kdb+ protocol version violation: Guid not supported pre kdb+ v3.0')
-                
+
                 for guid in data:
                     self._buffer.write(guid.bytes)
             else:

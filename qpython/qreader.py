@@ -205,12 +205,6 @@ class QReader(object):
         raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
 
 
-    @parse(QNULL)
-    def _read_null(self, qtype = QNULL):
-        self._buffer.get_byte() # ignore
-        return None
-
-
     @parse(QERROR)
     def _read_error(self, qtype = QERROR):
         raise QException(self._read_symbol())
@@ -315,6 +309,15 @@ class QReader(object):
         return [self._read_object() for x in xrange(length)]
 
 
+    @parse(QNULL)
+    @parse(QUNARY_FUNC)
+    @parse(QBINARY_FUNC)
+    @parse(QTERNARY_FUNC)
+    def _read_function(self, qtype = QNULL):
+        code = self._buffer.get_byte()
+        return None if qtype == QNULL and code == 0 else QFunction(qtype)
+
+
     @parse(QLAMBDA)
     def _read_lambda(self, qtype = QLAMBDA):
         self._buffer.get_symbol()  # skip
@@ -322,12 +325,28 @@ class QReader(object):
         return QLambda(expression)
 
 
-    @parse(QLAMBDA_PART)
-    def _read_lambda_part(self, qtype = QLAMBDA):
-        length = self._buffer.get_int() - 1
-        qlambda = self._read_lambda(qtype)
-        qlambda.parameters = [ self._read_object() for x in range(length) ]
-        return qlambda
+    @parse(QCOMPOSITION_FUNC)
+    def _read_function_composition(self, qtype = QCOMPOSITION_FUNC):
+        self._read_projection(qtype)  # skip
+        return QFunction(qtype)
+
+
+    @parse(QADVERB_FUNC_106)
+    @parse(QADVERB_FUNC_107)
+    @parse(QADVERB_FUNC_108)
+    @parse(QADVERB_FUNC_109)
+    @parse(QADVERB_FUNC_110)
+    @parse(QADVERB_FUNC_111)
+    def _read_adverb_function(self, qtype = QADVERB_FUNC_106):
+        self._read_object()  # skip
+        return QFunction(qtype)
+
+
+    @parse(QPROJECTION)
+    def _read_projection(self, qtype = QPROJECTION):
+        length = self._buffer.get_int()
+        parameters = [ self._read_object() for x in range(length) ]
+        return QProjection(parameters)
 
 
     def _read_bytes(self, length):

@@ -261,16 +261,28 @@ For example::
                         qlist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
 
 
-Lambdas
-*******
+Functions, lambdas and projections
+**********************************
 
-The q lambda is mapped to custom Python class :class:`.qtype.QLambda`::
+IPC protocol type codes 100+ are used to represent functions, lambdas and 
+projections. These types are represented as instances of base class 
+:class:`.qtype.QFunction` or descendent classes:
 
-    # {x+y}
-    QLambda('{x+y}')
+- :class:`.qtype.QLambda` - represents q lambda expression, note the expression  
+  is required to be either:
 
-    # {x+y} [3]
-    QLambda('{x+y}', numpy.int64(3))
+    - q expression enclosed in {}, e.g.: ``{x + y}``
+    - k expression, e.g.: ``k){x + y}``
+ 
+- :class:`.qtype.QProjection` - represents function projection with parameters::
+  
+    # { x + y}[3]
+    QProjection([QLambda('{x+y}'), numpy.int64(3)])
+
+  
+.. note:: Only :class:`.qtype.QLambda` and :class:`.qtype.QProjection` are 
+          serializable. qPython doesn't provide means to serialize other 
+          function types.
 
 
 Errors

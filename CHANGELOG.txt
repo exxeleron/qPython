@@ -1,7 +1,8 @@
 ------------------------------------------------------------------------------
-  qPython 1.0 Beta 5 [TBA]
+  qPython 1.0 Beta 5 [2014.10.01]
 ------------------------------------------------------------------------------
 
+  - Redesign lambdas and projections handling
   - Rework collections API
   - Extend QConnection class with context manager API
   - Fix: reading of generic null (::) embedded in lists
@@ -11,7 +12,8 @@
   qPython 1.0 Beta 4 [2014.07.04]
 ------------------------------------------------------------------------------
 
-  - qtemporallist: force numpy.array type conversion in case of mismatch between meta.qtype and dtype of raw list
+  - qtemporallist: force numpy.array type conversion in case of mismatch between 
+    meta.qtype and dtype of raw list
   - Enable Travis CI integration
   - Update project meta-information
 

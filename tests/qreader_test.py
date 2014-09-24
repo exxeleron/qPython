@@ -99,8 +99,18 @@ EXPRESSIONS = OrderedDict((
                     ('("quick"; "brown"; "fox"; "jumps"; "over"; "a lazy"; "dog")',
                                                                       ['quick', 'brown', 'fox', 'jumps', 'over', 'a lazy', 'dog']),
                     ('{x+y}',                                         QLambda('{x+y}')),
-                    ('{x+y}[3]',                                      QLambda('{x+y}', numpy.int64(3))),
-                     
+                    ('{x+y}[3]',                                      QProjection([QLambda('{x+y}'), numpy.int64(3)])),
+                    ('insert [1]',                                    QProjection([QFunction(0), numpy.int64(1)])),
+                    ('xbar',                                          QLambda('k){x*y div x:$[16h=abs[@x];"j"$x;x]}')),
+                    ('not',                                           QFunction(0)),
+                    ('and',                                           QFunction(0)),
+                    ('md5',                                           QProjection([QFunction(0), numpy.int64(-15)])),
+                    ('any',                                           QFunction(0)),
+                    ('save',                                          QFunction(0)),
+                    ('raze',                                          QFunction(0)),
+                    ('sums',                                          QFunction(0)),
+                    ('prev',                                          QFunction(0)),
+
                     ('(enlist `a)!(enlist 1)',                        QDictionary(qlist(numpy.array(['a']), qtype = QSYMBOL_LIST), 
                                                                                   qlist(numpy.array([1], dtype=numpy.int64), qtype=QLONG_LIST))),
                     ('1 2!`abc`cdefgh',                               QDictionary(qlist(numpy.array([1, 2], dtype=numpy.int64), qtype=QLONG_LIST),
@@ -203,6 +213,8 @@ def compare(left, right):
         return numpy.isnan(right.raw)
     elif type(left) in [list, tuple, numpy.ndarray, QList, QTemporalList]:
         return arrays_equal(left, right)
+    elif type(left) == QFunction:
+        return type(right) == QFunction
     else:
         return left == right
 

@@ -70,63 +70,85 @@ QDICTIONARY            0x63
 QKEYED_TABLE           0x63
 QTABLE                 0x62
 QLAMBDA                0x64
-QLAMBDA_PART           0x68
+QUNARY_FUNC            0x65
+QBINARY_FUNC           0x66
+QTERNARY_FUNC          0x67
+QCOMPOSITION_FUNC      0x69
+QADVERB_FUNC_106       0x6a
+QADVERB_FUNC_107       0x6b
+QADVERB_FUNC_108       0x6c
+QADVERB_FUNC_109       0x6d
+QADVERB_FUNC_110       0x6e
+QADVERB_FUNC_111       0x6f
+QPROJECTION            0x68
 QERROR                 -0x80  
 ==================     =============
 '''
 
 import numpy
+import re
 import uuid
 
 
 # qtype constants:
-QNULL           =  0x65
-QGENERAL_LIST   =  0x00
-QBOOL           =  -0x01
-QBOOL_LIST      =  0x01
-QGUID           =  -0x02
-QGUID_LIST      =  0x02
-QBYTE           =  -0x04
-QBYTE_LIST      =  0x04
-QSHORT          =  -0x05
-QSHORT_LIST     =  0x05
-QINT            =  -0x06
-QINT_LIST       =  0x06
-QLONG           =  -0x07
-QLONG_LIST      =  0x07
-QFLOAT          =  -0x08
-QFLOAT_LIST     =  0x08
-QDOUBLE         =  -0x09
-QDOUBLE_LIST    =  0x09
-QCHAR           =  -0x0a
-QSTRING         =  0x0a
-QSTRING_LIST    =  0x00
-QSYMBOL         =  -0x0b
-QSYMBOL_LIST    =  0x0b
+QNULL               =  0x65
+QGENERAL_LIST       =  0x00
+QBOOL               =  -0x01
+QBOOL_LIST          =  0x01
+QGUID               =  -0x02
+QGUID_LIST          =  0x02
+QBYTE               =  -0x04
+QBYTE_LIST          =  0x04
+QSHORT              =  -0x05
+QSHORT_LIST         =  0x05
+QINT                =  -0x06
+QINT_LIST           =  0x06
+QLONG               =  -0x07
+QLONG_LIST          =  0x07
+QFLOAT              =  -0x08
+QFLOAT_LIST         =  0x08
+QDOUBLE             =  -0x09
+QDOUBLE_LIST        =  0x09
+QCHAR               =  -0x0a
+QSTRING             =  0x0a
+QSTRING_LIST        =  0x00
+QSYMBOL             =  -0x0b
+QSYMBOL_LIST        =  0x0b
+                    
+QTIMESTAMP          =  -0x0c
+QTIMESTAMP_LIST     =  0x0c
+QMONTH              =  -0x0d
+QMONTH_LIST         =  0x0d
+QDATE               =  -0x0e
+QDATE_LIST          =  0x0e
+QDATETIME           =  -0x0f
+QDATETIME_LIST      =  0x0f
+QTIMESPAN           =  -0x10
+QTIMESPAN_LIST      =  0x10
+QMINUTE             =  -0x11
+QMINUTE_LIST        =  0x11
+QSECOND             =  -0x12
+QSECOND_LIST        =  0x12
+QTIME               =  -0x13
+QTIME_LIST          =  0x13
+                    
+QDICTIONARY         =  0x63
+QKEYED_TABLE        =  0x63
+QTABLE              =  0x62
+QLAMBDA             =  0x64
+QUNARY_FUNC         =  0x65
+QBINARY_FUNC        =  0x66
+QTERNARY_FUNC       =  0x67
+QCOMPOSITION_FUNC   =  0x69
+QADVERB_FUNC_106    =  0x6a
+QADVERB_FUNC_107    =  0x6b
+QADVERB_FUNC_108    =  0x6c
+QADVERB_FUNC_109    =  0x6d
+QADVERB_FUNC_110    =  0x6e
+QADVERB_FUNC_111    =  0x6f
+QPROJECTION         =  0x68
 
-QTIMESTAMP      =  -0x0c
-QTIMESTAMP_LIST =  0x0c
-QMONTH          =  -0x0d
-QMONTH_LIST     =  0x0d
-QDATE           =  -0x0e
-QDATE_LIST      =  0x0e
-QDATETIME       =  -0x0f
-QDATETIME_LIST  =  0x0f
-QTIMESPAN       =  -0x10
-QTIMESPAN_LIST  =  0x10
-QMINUTE         =  -0x11
-QMINUTE_LIST    =  0x11
-QSECOND         =  -0x12
-QSECOND_LIST    =  0x12
-QTIME           =  -0x13
-QTIME_LIST      =  0x13
-
-QDICTIONARY     =  0x63
-QKEYED_TABLE    =  0x63
-QTABLE          =  0x62
-QLAMBDA         =  0x64
-QLAMBDA_PART    =  0x68
-QERROR          = -0x80  
+QERROR              = -0x80  
 
 
 
@@ -269,34 +291,82 @@ class QException(Exception):
 
 
 
-class QLambda(object):
+class QFunction(object):
+    '''Represents a q function.'''
+    
+    def __init__(self, qtype):
+        self.qtype = qtype
+
+
+    def __str__(self):
+        return '%s#%s' % (self.__class__.__name__, self.qtype)
+
+
+
+class QLambda(QFunction):
+    
     '''Represents a q lambda expression.
+    
+    .. note:: `expression` is trimmed and required to be valid q function 
+              (``{..}``) or k function (``k){..}``).
     
     :Parameters:
      - `expression` (`string`) - lambda expression
-     - `parameters` (`list`) - list of parameters for lambda expression 
+     
+    :raises: `ValueError` 
     '''
-    def __init__(self, expression, *parameters):
+    def __init__(self, expression):
+        QFunction.__init__(self, QLAMBDA)
+        
+        if not expression:
+            raise ValueError('Lambda expression cannot be None or empty')
+        
+        expression = expression.strip()
+        
+        if not QLambda._EXPRESSION_REGEX.match(expression):
+            raise ValueError('Invalid lambda expression: %s' % expression)
+        
         self.expression = expression
-        self.parameters = parameters
-        
+
+
+    _EXPRESSION_REGEX = re.compile(r'\s*(k\))?\s*\{.*\}')
+
+
     def __str__(self):
-        params = []
-        for arg in self.parameters:
-            params.append('%s' % arg)
-        
-        return '%s(\'%s\'%s)' % (self.__class__.__name__, self.expression, ', '.join(params) if params else '')
+        return '%s(\'%s\')' % (self.__class__.__name__, self.expression)
+
 
     def __eq__(self, other):
-        result = (isinstance(other, self.__class__) and self.expression == other.expression)
+        return (isinstance(other, self.__class__) and self.expression == other.expression)
+
+
+
+class QProjection(QFunction):
+    
+    '''Represents a q projection.
+    
+    :Parameters:
+     - `parameters` (`list`) - list of parameters for lambda expression
+    '''
+    def __init__(self, parameters):
+        QFunction.__init__(self, QPROJECTION)
         
-        if not result:
-            return False
+        self.parameters = parameters
+
         
+    def __str__(self):
+        parameters_str = []
+        for arg in self.parameters:
+            parameters_str.append('%s' % arg)
+            
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(parameters_str))
+
+
+    def __eq__(self, other):
         return (not self.parameters and not other.parameters) or \
                 reduce(lambda v1,v2: v1 or v2, map(lambda v: v in self.parameters, other.parameters))
-        
 
+        
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -310,6 +380,7 @@ class Mapper(object):
     '''
     def __init__(self, call_map):
         self.call_map = call_map
+
 
     def __call__(self, *args):
         def wrap(func):
