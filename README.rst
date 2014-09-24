@@ -69,6 +69,11 @@ To run Twisted sample, qPython requires:
 
 - Twisted 13.2.0
 
+To build documentation via Sphinx, qPython requires:
+
+- Sphinx 1.2.3
+- mock 1.0.1
+
 Required libraries can be installed using `pip`_.
 
 To install all the required dependencies, execute: ``pip install -r requirements.txt``
