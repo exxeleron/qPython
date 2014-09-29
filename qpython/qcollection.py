@@ -99,16 +99,16 @@ def get_list_qtype(array):
 
 
 
-def qlist(array, **meta):
+def qlist(array, adjust_dtype = True, **meta):
     '''Converts an input array to q vector and enriches object instance with 
     meta data.
 
     Returns a :class:`.QList` instance for non-datetime vectors. For datetime 
     vectors :class:`.QTemporalList` is returned instead.
 
-    If q type retrieved via :func:`.get_list_qtype` doesn't match one provided 
-    as a `qtype` parameter guessed q type, underlying numpy.array is converted
-    to correct data type.
+    If parameter `adjust_dtype` is `True` and q type retrieved via 
+    :func:`.get_list_qtype` doesn't match one provided as a `qtype` parameter 
+    guessed q type, underlying numpy.array is converted to correct data type.
     
     `qPython` internally represents ``(0x01;0x02;0xff)`` q list as:
     ``<class 'qpython.qcollection.QList'> dtype: int8 qtype: -4: [ 1  2 -1]``.
@@ -135,6 +135,8 @@ def qlist(array, **meta):
     
     :Parameters:
      - `array` (`tuple`, `list`, `numpy.array`) - input array to be converted
+     - `adjust_dtype` (`boolean`) - determine whether data type of vector should
+       be adjusted if it doesn't match default representation
     
     :Kwargs:
      - `qtype` (`integer` or `None`) - qtype indicator
@@ -154,7 +156,7 @@ def qlist(array, **meta):
     if meta and 'qtype' in meta:
         qtype = -abs(meta['qtype'])
         dtype = PY_TYPE[qtype]
-        if dtype != array.dtype:
+        if adjust_dtype and dtype != array.dtype:
             array = array.astype(dtype = dtype)
 
     qtype = get_list_qtype(array) if qtype is None else qtype
@@ -272,7 +274,6 @@ class QTable(numpy.recarray):
     def __array_finalize__(self, obj):
         self.meta = MetaData() if obj is None else getattr(obj, 'meta', MetaData())
         
-
 
 
 def qtable(columns, data, **meta):
