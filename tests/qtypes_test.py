@@ -239,9 +239,91 @@ def test_array_to_raw_qtemporal():
     
 
 
+def test_array_from_raw_qtemporal():
+    raw = numpy.array([12, 121, qnull(QMONTH)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QMONTH)
+    
+    assert str(na_dt.dtype).startswith('datetime64[M]')
+    for x in xrange(len(na_dt)):
+        if na_dt[x] != numpy.datetime64('NaT', 'M'):
+            assert na_dt[x].astype(int) == raw[x] + 360
+        else:
+            assert raw[x] == qnull(QMONTH)
+    
+    raw = numpy.array([366, 121, qnull(QDATE)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QDATE)
+    
+    assert str(na_dt.dtype).startswith('datetime64[D]')
+    for x in xrange(len(na_dt)):
+        if na_dt[x] != numpy.datetime64('NaT', 'D'):
+            assert na_dt[x].astype(int) == raw[x] + 10957
+        else:
+            assert raw[x] == qnull(QDATE) 
+            
+    raw = numpy.array([43500, -121, qnull(QMINUTE)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QMINUTE)
+    
+    assert str(na_dt.dtype).startswith('timedelta64[m]')
+    for x in xrange(len(na_dt)):
+        if na_dt[x] != numpy.timedelta64('NaT', 'm'):
+            assert na_dt[x].astype(int) == raw[x]
+        else:
+            assert raw[x] == qnull(QMINUTE)
+            
+    raw = numpy.array([43500, -121, qnull(QSECOND)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QSECOND)
+    
+    assert str(na_dt.dtype).startswith('timedelta64[s]')
+    for x in xrange(len(na_dt)):
+        if na_dt[x] != numpy.timedelta64('NaT', 's'):
+            assert na_dt[x].astype(int) == raw[x]
+        else:
+            assert raw[x] == qnull(QSECOND)
+            
+    raw = numpy.array([43500, -121, qnull(QTIME)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QTIME)
+    
+    assert str(na_dt.dtype).startswith('timedelta64[ms]')
+    for x in xrange(len(na_dt)):
+        if na_dt[x] != numpy.timedelta64('NaT', 'ms'):
+            assert na_dt[x].astype(int) == raw[x]
+        else:
+            assert raw[x] == qnull(QTIME)
+            
+    raw = numpy.array([20217600000000, -2021760000, qnull(QTIMESPAN)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QTIMESPAN)
+    
+    assert str(na_dt.dtype).startswith('timedelta64[ns]')
+    for x in xrange(len(na_dt)):
+        if na_dt[x] != numpy.timedelta64('NaT', 'ns'):
+            assert na_dt[x].astype(numpy.int64) == raw[x]
+        else:
+            assert raw[x] == qnull(QTIMESPAN)
+
+    raw = numpy.array([279417600000000, -2021760000, qnull(QTIMESTAMP)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QTIMESTAMP)
+    
+    assert str(na_dt.dtype).startswith('datetime64[ns]')
+    for x in xrange(len(na_dt)):
+        if na_dt[x] != numpy.datetime64('NaT', 'ns'):
+            assert na_dt[x].astype(numpy.int64) == raw[x] + numpy.datetime64('2000-01-01T00:00:00', 'ns').astype(long)
+        else:
+            assert raw[x] == qnull(QTIMESTAMP)
+            
+            
+    raw = numpy.array([3.234, qnull(QDATETIME)])
+    na_dt = array_from_raw_qtemporal(raw, qtype = QDATETIME)
+    ref = numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), numpy.datetime64('nat', 'ms')])
+    
+    assert str(na_dt.dtype).startswith('datetime64[ms]')
+    for x in xrange(len(na_dt)):
+        assert na_dt[x] == ref[x]
+
+
 test_is_null()
 test_qdict()
 test_qtable()
 test_qkeyedtable()
 test_qtemporallist()
 test_array_to_raw_qtemporal()
+test_array_from_raw_qtemporal()
