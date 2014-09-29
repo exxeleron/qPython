@@ -35,6 +35,9 @@ class QList(numpy.ndarray):
     def __hash__(self):
         return hash((self.dtype, self.meta.qtype, self.tostring()))
 
+    def __array_finalize__(self, obj):
+        self.meta = MetaData() if obj is None else getattr(obj, 'meta', MetaData())
+
 
 
 class QTemporalList(QList):
@@ -265,6 +268,10 @@ class QTable(numpy.recarray):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __array_finalize__(self, obj):
+        self.meta = MetaData() if obj is None else getattr(obj, 'meta', MetaData())
+        
 
 
 
