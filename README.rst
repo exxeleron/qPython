@@ -78,4 +78,4 @@ To install minimal set of required dependencies, execute: ``pip install -r requi
 .. _Cython: http://cython.org/
 .. _Sphinx: http://sphinx-doc.org/
 .. _pip: http://pypi.python.org/pypi/pip
-.. _documentation: http://github.com/exxeleron/qPython/blob/master/doc/source/index.rst
+.. _documentation: http://qpython.readthedocs.org/en/latest/
