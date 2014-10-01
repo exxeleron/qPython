@@ -114,9 +114,12 @@ class QConnection(object):
 
     def _init_socket(self):
         '''Initialises the socket used for communicating with a q service,'''
-        self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._connection.connect((self.host, self.port))
-        self._connection.settimeout(self.timeout)
+        try:
+            self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._connection.connect((self.host, self.port))
+            self._connection.settimeout(self.timeout)
+        except:
+            self._connection = None
 
 
     def close(self):
