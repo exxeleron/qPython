@@ -49,7 +49,7 @@ class QWriter(object):
 
     def __init__(self, stream, protocol_version):
         self._stream = stream
-        self.protocol_version = protocol_version
+        self._protocol_version = protocol_version
 
 
     def write(self, data, msg_type):
@@ -157,6 +157,9 @@ class QWriter(object):
 
     @serialize(uuid.UUID)
     def _write_guid(self, data):
+        if self._protocol_version < 3:
+            raise QWriterException('kdb+ protocol version violation: Guid not supported pre kdb+ v3.0')
+
         self._buffer.write(struct.pack('=b', QGUID))
         self._buffer.write(data.bytes)
 
@@ -164,7 +167,7 @@ class QWriter(object):
     @serialize(QTemporal)
     def _write_temporal(self, data):
         try:
-            if self.protocol_version < 1 and (data.meta.qtype == QTIMESPAN or data.meta.qtype == QTIMESTAMP):
+            if self._protocol_version < 1 and (data.meta.qtype == QTIMESPAN or data.meta.qtype == QTIMESTAMP):
                 raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))
 
             self._buffer.write(struct.pack('=b', data.meta.qtype))
@@ -212,7 +215,7 @@ class QWriter(object):
         if qtype is None:
             qtype = get_list_qtype(data)
 
-        if self.protocol_version < 1 and (data.meta.qtype == QTIMESPAN_LIST or data.meta.qtype == QTIMESTAMP_LIST):
+        if self._protocol_version < 1 and (data.meta.qtype == QTIMESPAN_LIST or data.meta.qtype == QTIMESTAMP_LIST):
             raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))
 
         if qtype == QGENERAL_LIST:
@@ -225,7 +228,7 @@ class QWriter(object):
                 for symbol in data:
                     self._buffer.write('%s\0' % (symbol or ''))
             elif qtype == QGUID:
-                if self.protocol_version < 3:
+                if self._protocol_version < 3:
                     raise QWriterException('kdb+ protocol version violation: Guid not supported pre kdb+ v3.0')
 
                 for guid in data:
