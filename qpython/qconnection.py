@@ -120,6 +120,7 @@ class QConnection(object):
             self._connection.settimeout(self.timeout)
         except:
             self._connection = None
+            raise
 
 
     def close(self):
