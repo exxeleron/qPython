@@ -1,24 +1,25 @@
-# 
+#
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 import socket
 import struct
 
+from qpython import MetaData
 from qpython.qtype import QException
-from qpython.qreader import QReader, QReaderException
+from qpython.qreader import QReader, QReaderException, READER_CONFIGURATION
 from qpython.qwriter import QWriter, QWriterException
 
 
@@ -29,7 +30,7 @@ class QConnectionException(Exception):
 
 
 class QAuthenticationException(QConnectionException):
-    '''Raised when a connection to the q service is denied.''' 
+    '''Raised when a connection to the q service is denied.'''
     pass
 
 
@@ -60,9 +61,17 @@ class QConnection(object):
      - `username` (`string` or `None`) - username for q authentication/authorization
      - `password` (`string` or `None`) - password for q authentication/authorization
      - `timeout` (`nonnegative float` or `None`) - set a timeout on blocking socket operations
+    :Options: 
+     - `raw` (`boolean`) - if ``True`` returns raw data chunk instead of parsed 
+       data, **Default**: ``False``
+     - `numpy_temporals` (`boolean`) - if ``False`` temporal vectors are
+       backed by raw q representation (:class:`.QTemporalList`, 
+       :class:`.QTemporal`) instances, otherwise are represented as 
+       `numpy datetime64`/`timedelta64` arrays and atoms,
+       **Default**: ``False``
     '''
 
-    def __init__(self, host, port, username = None, password = None, timeout = None):
+    def __init__(self, host, port, username = None, password = None, timeout = None, **options):
         self.host = host
         self.port = port
         self.username = username
@@ -73,12 +82,14 @@ class QConnection(object):
 
         self.timeout = timeout
 
-        
+        self._options = MetaData(**READER_CONFIGURATION.union_dict(**options))
+
+
     def __enter__(self):
         self.open()
         return self
 
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
@@ -137,7 +148,7 @@ class QConnection(object):
          - it has not been initialised, 
          - it has been closed.
          
-        :returns: `bool` -- ``True`` if connection has been established, 
+        :returns: `boolean` -- ``True`` if connection has been established, 
                   ``False`` otherwise
         '''
         return True if self._connection else False
@@ -152,7 +163,7 @@ class QConnection(object):
         if len(response) != 1:
             self.close()
             self._init_socket()
-        
+
             self._connection.send(credentials + '\0')
             response = self._connection.recv(1)
             if len(response) != 1:
@@ -201,7 +212,7 @@ class QConnection(object):
             self._writer.write([query] + list(parameters), msg_type)
 
 
-    def sync(self, query, *parameters):
+    def sync(self, query, *parameters, **options):
         '''Performs a synchronous query against a q service and returns parsed 
         data.
         
@@ -238,6 +249,14 @@ class QConnection(object):
         :Parameters:
          - `query` (`string`) - query to be executed
          - `parameters` (`list` or `None`) - parameters for the query
+        :Options: 
+         - `raw` (`boolean`) - if ``True`` returns raw data chunk instead of 
+           parsed data, **Default**: ``False``
+         - `numpy_temporals` (`boolean`) - if ``False`` temporal vectors are
+           backed by raw q representation (:class:`.QTemporalList`, 
+           :class:`.QTemporal`) instances, otherwise are represented as 
+           `numpy datetime64`/`timedelta64` arrays and atoms,
+           **Default**: ``False``
 
         :returns: query result parsed to Python data structures
         
@@ -245,7 +264,7 @@ class QConnection(object):
                  :class:`.QReaderException`
         '''
         self.query(MessageType.SYNC, query, *parameters)
-        response = self.receive(data_only = False)
+        response = self.receive(data_only = False, **options)
 
         if response.type == MessageType.RESPONSE:
             return response.data
@@ -279,7 +298,7 @@ class QConnection(object):
         self.query(MessageType.ASYNC, query, *parameters)
 
 
-    def receive(self, data_only = True, raw = False):
+    def receive(self, data_only = True, **options):
         '''Reads and (optionally) parses the response from a q service.
         
         Retrieves query result along with meta-information:
@@ -302,20 +321,25 @@ class QConnection(object):
             fa0a000000
                 
         :Parameters:
-         - `data_only` (`bool`) - if ``True`` returns only data part of the 
+         - `data_only` (`boolean`) - if ``True`` returns only data part of the 
            message, otherwise returns data and message meta-information 
            encapsulated in :class:`.QMessage` instance 
-        
-         - `raw` (`bool`) - if ``True`` returns raw data chunk instead of 
-           parsed data
+        :Options:
+         - `raw` (`boolean`) - if ``True`` returns raw data chunk instead of 
+           parsed data, **Default**: ``False``
+         - `numpy_temporals` (`boolean`) - if ``False`` temporal vectors are
+           backed by raw q representation (:class:`.QTemporalList`, 
+           :class:`.QTemporal`) instances, otherwise are represented as 
+           `numpy datetime64`/`timedelta64` arrays and atoms,
+           **Default**: ``False``
         
         :returns: depending on parameter flags: :class:`.QMessage` instance, 
                   parsed message, raw data 
         :raises: :class:`.QReaderException`
         '''
-        result = self._reader.read(raw = raw)
+        result = self._reader.read(**self._options.union_dict(**options))
         return result.data if data_only else result
 
 
-    def __call__(self, *parameters):
-        return self.sync(parameters[0], *parameters[1:])
+    def __call__(self, *parameters, **options):
+        return self.sync(parameters[0], *parameters[1:], **options)

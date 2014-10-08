@@ -2,7 +2,12 @@
   qPython 1.0 Beta 6 [TBA]
 ------------------------------------------------------------------------------
 
+  - Configurable deserialization for temporal vectors
+  - numpy datetime64/timedelta64 vectors ans atoms are now serializable without 
+    explicit conversions
+  - QTemporal: null values are now backed as numpy NaT
   - Fix: error handling while initializing connection
+  - Fix: sanity check against protocol version for guids
 
 ------------------------------------------------------------------------------
   qPython 1.0 Beta 5 [2014.10.01]

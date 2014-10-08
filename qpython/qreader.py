@@ -17,14 +17,21 @@
 import struct
 import sys
 
+from qpython import MetaData
 from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QDictionary, qtable, QTable, QKeyedTable
-from qpython.qtemporal import from_raw_qtemporal
+from qpython.qtemporal import qtemporal, from_raw_qtemporal, array_from_raw_qtemporal
 
 try:
     from qpython.fastutils import uncompress
 except:
     from qpython.utils import uncompress
+
+
+
+READER_CONFIGURATION = MetaData(raw = False,
+                                numpy_temporals = False)
+
 
 
 class QReaderException(Exception):
@@ -104,21 +111,27 @@ class QReader(object):
         self._buffer = QReader.BytesBuffer()
 
 
-    def read(self, source = None, raw = False):
+    def read(self, source = None, **options):
         '''
         Reads and optionally parses a single message.
         
         :Parameters:
          - `source` - optional data buffer to be read, if not specified data is 
            read from the wrapped stream
+        :Options:
          - `raw` (`boolean`) - indicates whether read data should parsed or 
-           returned in raw byte form 
+           returned in raw byte form
+         - `numpy_temporals` (`boolean`) - if ``False`` temporal vectors are
+           backed by raw q representation (:class:`.QTemporalList`, 
+           :class:`.QTemporal`) instances, otherwise are represented as 
+           `numpy datetime64`/`timedelta64` arrays and atoms,
+           **Default**: ``False``
          
         :returns: :class:`.QMessage` - read data (parsed or raw byte form) along
                   with meta information
         '''
         message = self.read_header(source)
-        message.data = self.read_data(message.size, raw, message.is_compressed)
+        message.data = self.read_data(message.size, message.is_compressed, **options)
 
         return message
 
@@ -153,7 +166,7 @@ class QReader(object):
         return QMessage(None, message_type, message_size, message_compressed)
 
 
-    def read_data(self, message_size, raw = False, is_compressed = False):
+    def read_data(self, message_size, is_compressed = False, **options):
         '''
         Reads and optionally parses data part of a message.
         
@@ -162,12 +175,20 @@ class QReader(object):
         
         :Parameters:
          - `message_size` (`integer`) - size of the message to be read
+         - `is_compressed` (`boolean`) - indicates whether data is compressed
+        :Options:
          - `raw` (`boolean`) - indicates whether read data should parsed or 
-           returned in raw byte form 
-         - `is_compressed` (`boolean`) - indicates whether data is compressed 
+           returned in raw byte form
+         - `numpy_temporals` (`boolean`) - if ``False`` temporal vectors are
+           backed by raw q representation (:class:`.QTemporalList`, 
+           :class:`.QTemporal`) instances, otherwise are represented as 
+           `numpy datetime64`/`timedelta64` arrays and atoms,
+           **Default**: ``False``
          
         :returns: read data (parsed or raw byte form)
         '''
+        options = MetaData(**READER_CONFIGURATION.union_dict(**options))
+        
         if is_compressed:
             if self._stream:
                 self._buffer.wrap(self._read_bytes(4))
@@ -184,55 +205,55 @@ class QReader(object):
         elif self._stream:
             raw_data = self._read_bytes(message_size - 8)
             self._buffer.wrap(raw_data)
-        if not self._stream and raw:
+        if not self._stream and options.raw:
             raw_data = self._buffer.raw(message_size - 8)
 
-        return raw_data if raw else self._read_object()
+        return raw_data if options.raw else self._read_object(options)
 
 
-    def _read_object(self):
+    def _read_object(self, options = READER_CONFIGURATION):
         qtype = self._buffer.get_byte()
 
         reader = QReader._reader_map.get(qtype, None)
 
         if reader:
-            return reader(self, qtype)
+            return reader(self, qtype, options)
         elif qtype >= QBOOL_LIST and qtype <= QTIME_LIST:
-            return self._read_list(qtype)
+            return self._read_list(qtype, options)
         elif qtype <= QBOOL and qtype >= QTIME:
-            return self._read_atom(qtype)
+            return self._read_atom(qtype, options)
 
         raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
 
 
     @parse(QERROR)
-    def _read_error(self, qtype = QERROR):
-        raise QException(self._read_symbol())
+    def _read_error(self, qtype = QERROR, options = READER_CONFIGURATION):
+        raise QException(self._read_symbol(options = options))
 
 
     @parse(QSTRING)
-    def _read_string(self, qtype = QSTRING):
+    def _read_string(self, qtype = QSTRING, options = READER_CONFIGURATION):
         self._buffer.skip()  # ignore attributes
         length = self._buffer.get_int()
         return intern(self._buffer.raw(length)) if length > 0 else ''
 
 
     @parse(QSYMBOL)
-    def _read_symbol(self, qtype = QSYMBOL):
+    def _read_symbol(self, qtype = QSYMBOL, options = READER_CONFIGURATION):
         return numpy.string_(intern(self._buffer.get_symbol()))
 
 
     @parse(QCHAR)
-    def _read_char(self, qtype = QCHAR):
-        return chr(self._read_atom(QCHAR))
+    def _read_char(self, qtype = QCHAR, options = READER_CONFIGURATION):
+        return chr(self._read_atom(QCHAR, options))
 
 
     @parse(QGUID)
-    def _read_guid(self, qtype = QGUID):
+    def _read_guid(self, qtype = QGUID, options = READER_CONFIGURATION):
         return uuid.UUID(bytes = self._buffer.raw(16))
 
 
-    def _read_atom(self, qtype):
+    def _read_atom(self, qtype, options):
         try:
             fmt = STRUCT_MAP[qtype]
             conversion = PY_TYPE[qtype]
@@ -242,16 +263,17 @@ class QReader(object):
 
 
     @parse(QTIMESPAN, QTIMESTAMP, QTIME, QSECOND, QMINUTE, QDATE, QMONTH, QDATETIME)
-    def _read_temporal(self, qtype):
+    def _read_temporal(self, qtype, options):
         try:
             fmt = STRUCT_MAP[qtype]
             conversion = PY_TYPE[qtype]
-            return from_raw_qtemporal(conversion(self._buffer.get(fmt)), qtype = qtype)
+            temporal = from_raw_qtemporal(conversion(self._buffer.get(fmt)), qtype = qtype)
+            return temporal if options.numpy_temporals else qtemporal(temporal, qtype = qtype)
         except KeyError:
             raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
 
 
-    def _read_list(self, qtype):
+    def _read_list(self, qtype, options):
         self._buffer.skip()  # ignore attributes
         length = self._buffer.get_int()
         conversion = PY_TYPE.get(-qtype, None)
@@ -259,12 +281,6 @@ class QReader(object):
         if qtype == QSYMBOL_LIST:
             symbols = self._buffer.get_symbols(length)
             data = numpy.array(symbols, dtype = numpy.string_)
-            return qlist(data, qtype = qtype, adjust_dtype = False)
-        elif qtype >= QTIMESTAMP_LIST and qtype <= QTIME_LIST:
-            raw = self._buffer.raw(length * ATOM_SIZE[qtype])
-            data = numpy.fromstring(raw, dtype = conversion)
-            if not self._is_native:
-                data.byteswap(True)
             return qlist(data, qtype = qtype, adjust_dtype = False)
         elif qtype == QGUID_LIST:
             data = numpy.array([self._read_guid() for x in xrange(length)])
@@ -274,15 +290,19 @@ class QReader(object):
             data = numpy.fromstring(raw, dtype = conversion)
             if not self._is_native:
                 data.byteswap(True)
+            
+            if qtype >= QTIMESTAMP_LIST and qtype <= QTIME_LIST and options.numpy_temporals:
+                data = array_from_raw_qtemporal(data, qtype)
+                
             return qlist(data, qtype = qtype, adjust_dtype = False)
         else:
             raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
 
 
     @parse(QDICTIONARY)
-    def _read_dictionary(self, qtype = QDICTIONARY):
-        keys = self._read_object()
-        values = self._read_object()
+    def _read_dictionary(self, qtype = QDICTIONARY, options = READER_CONFIGURATION):
+        keys = self._read_object(options = options)
+        values = self._read_object(options = options)
 
         if isinstance(keys, QTable):
             return QKeyedTable(keys, values)
@@ -291,42 +311,42 @@ class QReader(object):
 
 
     @parse(QTABLE)
-    def _read_table(self, qtype = QTABLE):
+    def _read_table(self, qtype = QTABLE, options = READER_CONFIGURATION):
         self._buffer.skip()  # ignore attributes
         self._buffer.skip()  # ignore dict type stamp
 
-        columns = self._read_object()
-        data = self._read_object()
+        columns = self._read_object(options = options)
+        data = self._read_object(options = options)
 
         return qtable(columns, data, qtype = QTABLE)
 
 
     @parse(QGENERAL_LIST)
-    def _read_general_list(self, qtype = QGENERAL_LIST):
+    def _read_general_list(self, qtype = QGENERAL_LIST, options = READER_CONFIGURATION):
         self._buffer.skip()  # ignore attributes
         length = self._buffer.get_int()
 
-        return [self._read_object() for x in xrange(length)]
+        return [self._read_object(options = options) for x in xrange(length)]
 
 
     @parse(QNULL)
     @parse(QUNARY_FUNC)
     @parse(QBINARY_FUNC)
     @parse(QTERNARY_FUNC)
-    def _read_function(self, qtype = QNULL):
+    def _read_function(self, qtype = QNULL, options = None):
         code = self._buffer.get_byte()
         return None if qtype == QNULL and code == 0 else QFunction(qtype)
 
 
     @parse(QLAMBDA)
-    def _read_lambda(self, qtype = QLAMBDA):
+    def _read_lambda(self, qtype = QLAMBDA, options = READER_CONFIGURATION):
         self._buffer.get_symbol()  # skip
-        expression = self._read_object()
+        expression = self._read_object(options = options)
         return QLambda(expression)
 
 
     @parse(QCOMPOSITION_FUNC)
-    def _read_function_composition(self, qtype = QCOMPOSITION_FUNC):
+    def _read_function_composition(self, qtype = QCOMPOSITION_FUNC, options = None):
         self._read_projection(qtype)  # skip
         return QFunction(qtype)
 
@@ -337,15 +357,15 @@ class QReader(object):
     @parse(QADVERB_FUNC_109)
     @parse(QADVERB_FUNC_110)
     @parse(QADVERB_FUNC_111)
-    def _read_adverb_function(self, qtype = QADVERB_FUNC_106):
+    def _read_adverb_function(self, qtype = QADVERB_FUNC_106, options = None):
         self._read_object()  # skip
         return QFunction(qtype)
 
 
     @parse(QPROJECTION)
-    def _read_projection(self, qtype = QPROJECTION):
+    def _read_projection(self, qtype = QPROJECTION, options = READER_CONFIGURATION):
         length = self._buffer.get_int()
-        parameters = [ self._read_object() for x in range(length) ]
+        parameters = [ self._read_object(options = options) for x in range(length) ]
         return QProjection(parameters)
 
 

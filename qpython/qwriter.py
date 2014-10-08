@@ -20,7 +20,7 @@ import sys
 
 from qtype import *  # @UnusedWildImport
 from qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable, get_list_qtype
-from qpython.qtemporal import QTemporal, to_raw_qtemporal
+from qpython.qtemporal import QTemporal, to_raw_qtemporal, array_to_raw_qtemporal
 
 
 class QWriterException(Exception):
@@ -174,7 +174,22 @@ class QWriter(object):
             fmt = STRUCT_MAP[data.meta.qtype]
             self._buffer.write(struct.pack(fmt, to_raw_qtemporal(data.raw, data.meta.qtype)))
         except KeyError:
-            raise QWriterException('Unable to serialize type: %s' % data.__class__ if isinstance(data, object) else type(data))
+            raise QWriterException('Unable to serialize type: %s' % type(data))
+
+
+    @serialize(numpy.datetime64, numpy.timedelta64)
+    def _write_numpy_temporal(self, data):
+        try:
+            qtype = TEMPORAL_PY_TYPE[str(data.dtype)]
+             
+            if self._protocol_version < 1 and (qtype == QTIMESPAN or qtype == QTIMESTAMP):
+                raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(qtype))
+
+            self._buffer.write(struct.pack('=b', qtype))
+            fmt = STRUCT_MAP[qtype]
+            self._buffer.write(struct.pack(fmt, to_raw_qtemporal(data, qtype)))
+        except KeyError:
+            raise QWriterException('Unable to serialize type: %s' % data.dtype)
 
 
     @serialize(QLambda)
@@ -224,6 +239,10 @@ class QWriter(object):
             self._write_string(data.tostring())
         else:
             self._buffer.write(struct.pack('=bxi', -qtype, len(data)))
+            if data.dtype.type in (numpy.datetime64, numpy.timedelta64):
+                # convert numpy temporal to raw q temporal
+                data = array_to_raw_qtemporal(data, qtype = qtype)
+            
             if qtype == QSYMBOL:
                 for symbol in data:
                     self._buffer.write('%s\0' % (symbol or ''))

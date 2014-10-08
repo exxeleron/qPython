@@ -201,6 +201,31 @@ Q_TYPE = {
     }
 
 
+# mapping of numpy datetime64/timedelta64 to q temporal types
+TEMPORAL_PY_TYPE = {
+    'datetime64[M]'    : QMONTH,
+    'datetime64[D]'    : QDATE,
+    'datetime64[ms]'   : QDATETIME,
+    'timedelta64[m]'   : QMINUTE,
+    'timedelta64[s]'   : QSECOND,
+    'timedelta64[ms]'  : QTIME,
+    'datetime64[ns]'   : QTIMESTAMP,
+    'timedelta64[ns]'  : QTIMESPAN
+    }
+
+
+TEMPORAL_Q_TYPE = {
+    QMONTH:      'datetime64[M]',
+    QDATE:       'datetime64[D]',
+    QDATETIME:   'datetime64[ms]',
+    QMINUTE:     'timedelta64[m]',
+    QSECOND:     'timedelta64[s]',
+    QTIME:       'timedelta64[ms]',
+    QTIMESTAMP:  'datetime64[ns]',
+    QTIMESPAN:   'timedelta64[ns]'
+    }
+
+
 # mapping of q types for Python binary translation
 STRUCT_MAP = {
     QBOOL:      'b',

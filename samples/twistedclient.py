@@ -63,7 +63,7 @@ class IPCProtocol(Protocol):
                         self._buffer = ''
                         buffer_len = 0
 
-                    self.factory.onMessage(self._reader.read(source = complete_message))
+                    self.factory.onMessage(self._reader.read(source = complete_message, numpy_temporals = True))
             except:
                 self.factory.onError(sys.exc_info())
                 self._message = None
@@ -148,7 +148,7 @@ class IPCClientFactory(ClientFactory):
 
 def onConnectSuccess(source):
     print 'Connected, protocol version: ', source.client.protocol_version
-    source.query(MessageType.SYNC, '.z.ts:{(handle)((1000*(1 ? 100))[0] ? 100)}')
+    source.query(MessageType.SYNC, '.z.ts:{(handle)(`timestamp$100?1000000000000000000)}')
     source.query(MessageType.SYNC, '.u.sub:{[t;s] handle:: neg .z.w}')
     source.query(MessageType.ASYNC, '.u.sub', 'trade', '')
 

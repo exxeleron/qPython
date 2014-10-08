@@ -104,3 +104,33 @@ QMessage: message type: 2, data size: 13, is_compressed: False, data: 10
 >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
 >>> print hexlify(q.receive(data_only = True, raw = True))
 fa0a000000
+
+
+Q parser configuration
+**********************
+
+Parsing options can be overwritten while:
+
+- executing synchronous query: :meth:`~qpython.qconnection.QConnection.sync`
+- retrieving data from q: :meth:`~qpython.qconnection.QConnection.receive`
+
+Both methods accepts the `options` keywords arguments::
+
+    >>> query = "{[x] 0Nd, `date$til x}"
+    
+    >>> # retrieve function call as raw byte buffer
+    >>> print binascii.hexlify(q(query, 5, raw = True))
+    0e0006000000000000800000000001000000020000000300000004000000
+
+    >>> # perform a synchronous call and parse dates vector to numpy array
+    >>> print q.sync(query, 5, numpy_temporals = True)
+    ['NaT' '2000-01-01' '2000-01-02' '2000-01-03' '2000-01-04' '2000-01-05']
+
+    >>> # perform a synchronous call
+    >>> q.query(qconnection.MessageType.SYNC, query, 3)
+    >>> # retrieve query result and represent dates vector as raw data wrapped in QTemporalList
+    >>> print q.receive(numpy_temporals = False)
+    [NaT [metadata(qtype=-14)] 2000-01-01 [metadata(qtype=-14)]
+     2000-01-02 [metadata(qtype=-14)] 2000-01-03 [metadata(qtype=-14)]]
+    
+    

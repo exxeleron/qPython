@@ -22,7 +22,7 @@ to this table:
 ===============  ============ =====================================
  q  type          q num type   Python type        
 ===============  ============ =====================================
- ``bool``         -1           ``numpy.bool\_``        
+ ``bool``         -1           ``numpy.bool_``        
  ``guid``         -2           ``UUID``
  ``byte``         -4           ``numpy.byte``         
  ``short``        -5           ``numpy.int16``        
@@ -41,9 +41,11 @@ to this table:
  ``time``         -19          ``QTemporal  numpy.timedelta64  ms``
 ===============  ============ =====================================
 
-.. note:: Temporal types in Python are represented as instances of 
+.. note:: By default, temporal types in Python are represented as instances of 
           :class:`.qtemporal.QTemporal` wrapping over ``numpy.datetime64`` or
           ``numpy.timedelta64`` with specified resolution.
+          This setting can be modified (`numpy_temporals = True`) and temporal
+          types can be represented without wrapping.
 
 
 During the serialization to IPC protocol, Python types are mapped to q as 
@@ -167,8 +169,12 @@ which simplifies creation of string lists::
 
 .. note:: ``QSTRING_LIST`` type indicator indicates that list/array has to be
           mapped to q generic list. 
-    
-Lists of temporal values are represented as instances of 
+
+
+Temporal lists
+++++++++++++++
+          
+By default, lists of temporal values are represented as instances of 
 :class:`.qcollection.QTemporalList` class. This class wraps the raw q 
 representation of temporal data (i.e. ``long``\s for ``timestamp``\s, ``int``\s 
 for ``month``\s etc.) and provides accessors which allow to convert raw data to 
@@ -176,19 +182,49 @@ for ``month``\s etc.) and provides accessors which allow to convert raw data to
 
 ::
 
-    qlist(numpy.array([to_raw_qtemporal(numpy.datetime64('2001-01-01', 'D'), qtype=QDATE), to_raw_qtemporal(numpy.datetime64('2000-05-01', 'D'), qtype=QDATE), qnull(QDATE)]), qtype=QDATE_LIST)
-    qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2001-01-01', 'D'), numpy.datetime64('2000-05-01', 'D'), numpy.datetime64('NaT', 'D')]), qtype = QDATE_LIST), qtype = QDATE_LIST)
-    qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)
-    # 2001.01.01 2000.05.01 0Nd
+    >>> v = q.sync("2001.01.01 2000.05.01 0Nd", numpy_temporals = False)
+    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    <class 'qpython.qcollection.QTemporalList'> dtype: int32 qtype: -14: [2001-01-01 [metadata(qtype=-14)] 2000-05-01 [metadata(qtype=-14)]
+     NaT [metadata(qtype=-14)]]
     
-    qlist(numpy.array([long(279417600000000), qnull(QTIMESTAMP)]), qtype=QTIMESTAMP_LIST)
-    # 2000.01.04D05:36:57.600 0Np
+    >>> v = q.sync("2000.01.04D05:36:57.600 0Np", numpy_temporals = False)
+    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    <class 'qpython.qcollection.QTemporalList'> dtype: int64 qtype: -12: [2000-01-04T05:36:57.600000000+0100 [metadata(qtype=-12)]
+     NaT [metadata(qtype=-12)]]
 
 
-The :func:`.qtemporal.array_to_raw_qtemporal` function simplifies adjusting
-of `numpy.datetime64` or `numpy.timedelta64` arrays to q representation as raw
-integer vectors.
+The IPC parser (:class:`.qreader.QReader`) can be instructed to represent the
+temporal vectors via `numpy.datetime64` or `numpy.timedelta64` arrays wrapped in
+:class:`.qcollection.QList` instances. The parsing option can be set either
+via :class:`~.qconnection.QConnection` constructor or as parameter to functions:
+(:meth:`~qpython.qconnection.QConnection.sync`) or 
+(:meth:`~qpython.qconnection.QConnection.receive`).
 
+::
+    
+    >>> v = q.sync("2001.01.01 2000.05.01 0Nd", numpy_temporals = True)
+    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    <class 'qpython.qcollection.QList'> dtype: datetime64[D] qtype: -14: ['2001-01-01' '2000-05-01' 'NaT']
+    
+    >>> v = q.sync("2000.01.04D05:36:57.600 0Np", numpy_temporals = True)
+    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    <class 'qpython.qcollection.QList'> dtype: datetime64[ns] qtype: -12: ['2000-01-04T05:36:57.600000000+0100' 'NaT']
+    
+
+In this parsing mode, temporal null values are converted to `numpy.NaT`.
+
+
+The serialization mechanism (:class:`.qwriter.QWriter`) accepts both 
+representations and doesn't require additional configuration.
+
+
+There are two utility functions for conversions between both representations:
+    
+- The :func:`.qtemporal.array_to_raw_qtemporal` function simplifies adjusting
+  of `numpy.datetime64` or `numpy.timedelta64` arrays to q representation as raw
+  integer vectors.
+- The :func:`.qtemporal.array_from_raw_qtemporal` converts raw temporal array
+  to `numpy.datetime64` or `numpy.timedelta64` array.
 
 
 Dictionaries
