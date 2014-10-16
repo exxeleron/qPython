@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------
-  qPython 1.0 Beta 6 [TBA]
+  qPython 1.0 Beta 6 [2014.10.16]
 ------------------------------------------------------------------------------
 
   - Configurable deserialization for temporal vectors
@@ -8,6 +8,7 @@
   - QTemporal: null values are now backed as numpy NaT
   - Fix: error handling while initializing connection
   - Fix: sanity check against protocol version for guids
+  - Fix: socket timeout in qwriter
 
 ------------------------------------------------------------------------------
   qPython 1.0 Beta 5 [2014.10.01]
