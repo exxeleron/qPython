@@ -77,7 +77,7 @@ class QWriter(object):
 
         # write data to socket
         if self._stream:
-            self._stream.send(self._buffer.getvalue())
+            self._stream.sendall(self._buffer.getvalue())
         else:
             return self._buffer.getvalue()
 
