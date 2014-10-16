@@ -20,7 +20,7 @@ import struct
 import sys
 
 from collections import OrderedDict
-from qpython import qreader, MetaData
+from qpython import qreader
 from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QList, QTemporalList, QDictionary, qtable, QKeyedTable
 from qpython.qtemporal import qtemporal, QTemporal
@@ -86,11 +86,17 @@ EXPRESSIONS = OrderedDict((
                     ('(0b;1b;0b)',                                    qlist(numpy.array([False, True, False], dtype=numpy.bool_), qtype=QBOOL_LIST)),
                     ('(0x01;0x02;0xff)',                              qlist(numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte), qtype=QBYTE_LIST)),
                     ('(1h;2h;3h)',                                    qlist(numpy.array([1, 2, 3], dtype=numpy.int16), qtype=QSHORT_LIST)),
+                    ('(1h;0Nh;3h)',                                   qlist(numpy.array([1, qnull(QSHORT), 3], dtype=numpy.int16), qtype=QSHORT_LIST)),
                     ('1 2 3',                                         qlist(numpy.array([1, 2, 3], dtype=numpy.int64), qtype=QLONG_LIST)),
+                    ('1 0N 3',                                        qlist(numpy.array([1, qnull(QLONG), 3], dtype=numpy.int64), qtype=QLONG_LIST)),
                     ('(1i;2i;3i)',                                    qlist(numpy.array([1, 2, 3], dtype=numpy.int32), qtype=QINT_LIST)),
+                    ('(1i;0Ni;3i)',                                   qlist(numpy.array([1, qnull(QINT), 3], dtype=numpy.int32), qtype=QINT_LIST)),
                     ('(1j;2j;3j)',                                    qlist(numpy.array([1, 2, 3], dtype=numpy.int64), qtype=QLONG_LIST)),
+                    ('(1j;0Nj;3j)',                                   qlist(numpy.array([1, qnull(QLONG), 3], dtype=numpy.int64), qtype=QLONG_LIST)),
                     ('(5.5e; 8.5e)',                                  qlist(numpy.array([5.5, 8.5], dtype=numpy.float32), qtype=QFLOAT_LIST)),
+                    ('(5.5e; 0Ne)',                                   qlist(numpy.array([5.5, qnull(QFLOAT)], dtype=numpy.float32), qtype=QFLOAT_LIST)),
                     ('3.23 6.46',                                     qlist(numpy.array([3.23, 6.46], dtype=numpy.float64), qtype=QDOUBLE_LIST)),
+                    ('3.23 0n',                                       qlist(numpy.array([3.23, qnull(QDOUBLE)], dtype=numpy.float64), qtype=QDOUBLE_LIST)),
                     ('(1;`bcd;"0bc";5.5e)',                           [numpy.int64(1), numpy.string_('bcd'), '0bc', numpy.float32(5.5)]),
                     ('(42;::;`foo)',                                  [numpy.int64(42), None, numpy.string_('foo')]),
                     ('`the`quick`brown`fox',                          qlist(numpy.array([numpy.string_('the'), numpy.string_('quick'), numpy.string_('brown'), numpy.string_('fox')], dtype=numpy.object), qtype=QSYMBOL_LIST)),
@@ -198,6 +204,7 @@ NUMPY_TEMPORAL_EXPRESSIONS = OrderedDict((
                     ))
 
 
+
 COMPRESSED_EXPRESSIONS = OrderedDict((
                     ('1000#`q',                                        qlist(numpy.array(['q'] * 1000), qtype=QSYMBOL_LIST)),
                     ('([] q:1000#`q)',                                 qtable(qlist(numpy.array(['q']), qtype = QSYMBOL_LIST),
@@ -286,7 +293,7 @@ def test_reading():
             assert compare(buffer_.getvalue()[8:], result), 'raw reading failed: %s' % (query)
 
             result = buffer_reader.read(source = buffer_.getvalue()).data
-            assert compare(value, result), 'deserialization failed: %s' % (query)
+            assert compare(value, result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value, result)
             
             header = buffer_reader.read_header(source = buffer_.getvalue())
             result = buffer_reader.read_data(message_size = header.size, is_compressed = header.is_compressed)
