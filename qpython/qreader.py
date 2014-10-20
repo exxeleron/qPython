@@ -30,7 +30,8 @@ except:
 
 
 READER_CONFIGURATION = MetaData(raw = False,
-                                numpy_temporals = False)
+                                numpy_temporals = False,
+                                pandas = False)
 
 
 
@@ -105,6 +106,19 @@ class QReader(object):
 
     _reader_map = {}
     parse = Mapper(_reader_map)
+
+
+    def __new__(cls, *args, **kwargs):
+        if cls is QReader:
+            # try to load optional pandas binding
+            try:
+                from qpython._pandas import PandasQReader
+                return super(QReader, cls).__new__(PandasQReader, args, kwargs)
+            except ImportError:
+                return super(QReader, cls).__new__(QReader, args, kwargs)
+        else:
+            return super(QReader, cls).__new__(cls, args, kwargs)
+
 
     def __init__(self, stream):
         self._stream = stream
@@ -188,7 +202,7 @@ class QReader(object):
         :returns: read data (parsed or raw byte form)
         '''
         options = MetaData(**READER_CONFIGURATION.union_dict(**options))
-        
+
         if is_compressed:
             if self._stream:
                 self._buffer.wrap(self._read_bytes(4))
@@ -290,10 +304,10 @@ class QReader(object):
             data = numpy.fromstring(raw, dtype = conversion)
             if not self._is_native:
                 data.byteswap(True)
-            
+
             if qtype >= QTIMESTAMP_LIST and qtype <= QTIME_LIST and options.numpy_temporals:
                 data = array_from_raw_qtemporal(data, qtype)
-                
+
             return qlist(data, qtype = qtype, adjust_dtype = False)
         else:
             raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
@@ -535,4 +549,5 @@ class QReader(object):
             self._position = new_position
 
             return raw.split('\x00')
+
 

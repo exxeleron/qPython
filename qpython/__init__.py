@@ -39,6 +39,9 @@ class MetaData(object):
     def __getitem__(self, key):
         return self.__dict__.get(key, None)
 
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
     def as_dict(self):
         return self.__dict__.copy()
 

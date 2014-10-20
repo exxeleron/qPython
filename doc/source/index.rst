@@ -12,6 +12,7 @@ Welcome to qPython's documentation!
    connection
    queries
    type-conversion
+   pandas
    usage-examples
 
 

@@ -47,6 +47,18 @@ class QWriter(object):
     serialize = Mapper(_writer_map)
 
 
+    def __new__(cls, *args, **kwargs):
+        if cls is QWriter:
+            # try to load optional pandas binding
+            try:
+                from qpython._pandas import PandasQWriter
+                return super(QWriter, cls).__new__(PandasQWriter, args, kwargs)
+            except ImportError:
+                return super(QWriter, cls).__new__(QWriter, args, kwargs)
+        else:
+            return super(QWriter, cls).__new__(cls, args, kwargs)
+
+
     def __init__(self, stream, protocol_version):
         self._stream = stream
         self._protocol_version = protocol_version
@@ -181,7 +193,7 @@ class QWriter(object):
     def _write_numpy_temporal(self, data):
         try:
             qtype = TEMPORAL_PY_TYPE[str(data.dtype)]
-             
+
             if self._protocol_version < 1 and (qtype == QTIMESPAN or qtype == QTIMESTAMP):
                 raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(qtype))
 
@@ -230,7 +242,7 @@ class QWriter(object):
         if qtype is None:
             qtype = get_list_qtype(data)
 
-        if self._protocol_version < 1 and (data.meta.qtype == QTIMESPAN_LIST or data.meta.qtype == QTIMESTAMP_LIST):
+        if self._protocol_version < 1 and (abs(qtype) == QTIMESPAN_LIST or abs(qtype) == QTIMESTAMP_LIST):
             raise QWriterException('kdb+ protocol version violation: data type %s not supported pre kdb+ v2.6' % hex(data.meta.qtype))
 
         if qtype == QGENERAL_LIST:
@@ -242,7 +254,7 @@ class QWriter(object):
             if data.dtype.type in (numpy.datetime64, numpy.timedelta64):
                 # convert numpy temporal to raw q temporal
                 data = array_to_raw_qtemporal(data, qtype = qtype)
-            
+
             if qtype == QSYMBOL:
                 for symbol in data:
                     self._buffer.write('%s\0' % (symbol or ''))
