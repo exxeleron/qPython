@@ -1,5 +1,5 @@
-qPython 1.0 Beta
-================
+qPython
+=======
 
 qPython is a Python library providing support for interprocess communication between Python and kdb+ processes, it offers:
 
@@ -57,28 +57,34 @@ Instructions:
 Requirements
 ~~~~~~~~~~~~
 
-To run, qPython requires:
+qPython requires numpy 1.8 to run.
 
-- numpy 1.8
+Optional requirements have to be met to provide additional features:
 
-To tune performance critical parts of the code, additional requirements have to be met:
+- tune performance of critical parts of the code:
 
-- Cython 0.20.1
+  - Cython 0.20.1
 
-To run Twisted sample, qPython requires:
+- support serialization/deserialization of ``pandas.Series`` and ``pandas.DataFrame``
 
-- Twisted 13.2.0
+  - pandas 0.14.0
+  
+- run Twisted sample:
 
-To build documentation via Sphinx, qPython requires:
+  - Twisted 13.2.0
 
-- Sphinx 1.2.3
-- mock 1.0.1
+- build documentation via Sphinx:
+
+  - Sphinx 1.2.3
+  - mock 1.0.1
 
 Required libraries can be installed using `pip`_.
 
-To install all the required dependencies, execute: ``pip install -r requirements.txt``
+To install all the required dependencies, execute: 
+``pip install -r requirements.txt``
 
-To install minimal set of required dependencies, execute: ``pip install -r requirements-minimal.txt``
+Minimal set of required dependencies can be installed by executing: 
+``pip install -r requirements-minimal.txt``
 
 .. _Cython: http://cython.org/
 .. _Sphinx: http://sphinx-doc.org/
