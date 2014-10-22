@@ -34,7 +34,7 @@ else:
 
 # Utility function to read the README file.
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()    
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
 setup(name = 'qPython',
@@ -69,7 +69,6 @@ setup(name = 'qPython',
           'Topic :: Scientific/Engineering',
           'Topic :: Software Development',
           ],
-      packages = ['qpython', 'samples', ''],
+      packages = ['qpython', 'samples'],
       package_data = {'': ['LICENSE', 'CHANGELOG.txt', 'README.rst', 'requirements.txt']},
      )
-
