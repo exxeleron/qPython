@@ -44,7 +44,7 @@ setup(name = 'qPython',
 
       author = 'exxeleron',
       author_email = 'kdbtools@devnet.de',
-      url = 'https://github.com/exxeleron/qPython',
+      url = 'http://github.com/exxeleron/qPython',
       license = 'Apache License Version 2.0',
 
       ext_modules = ext_modules,
@@ -52,7 +52,7 @@ setup(name = 'qPython',
 
       keywords = ['kdb+'],
       classifiers=[
-          'Development Status :: 6 - Beta',
+          'Development Status :: 4 - Beta',
           'Environment :: Console',
           'Intended Audience :: Developers',
           'Intended Audience :: Education',
