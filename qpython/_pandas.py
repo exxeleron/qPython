@@ -99,7 +99,7 @@ class PandasQReader(QReader):
         list = QReader._read_list(self, qtype = qtype, options = options)
 
         if options.pandas:
-            if qtype != QSYMBOL_LIST:
+            if -abs(qtype) not in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN, QSYMBOL]:
                 null = QNULLMAP[-abs(qtype)][1]
                 ps = pandas.Series(data = list).replace(null, numpy.NaN)
             else:
