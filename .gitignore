@@ -54,6 +54,7 @@ dist
 **/wheelhouse/*
 # coverage
 .coverage
+__conda_version__.txt
 
 # OS generated files #
 ######################
