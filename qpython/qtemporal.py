@@ -18,12 +18,16 @@ from qpython import MetaData
 from qtype import *  # @UnusedWildImport
 
 
-_MILIS_PER_DAY = 24 * 60 * 60 * 1000
+_MILLIS_PER_DAY = 24 * 60 * 60 * 1000
+_MILLIS_PER_DAY_FLOAT = float(_MILLIS_PER_DAY)
+_QEPOCH_MS = long(10957 * _MILLIS_PER_DAY)
+_EPOCH_QTIMESTAMP_NS = _QEPOCH_MS * 1000000
+
 
 _EPOCH_QMONTH = numpy.datetime64('2000-01', 'M')
 _EPOCH_QDATE = numpy.datetime64('2000-01-01', 'D')
-_EPOCH_QDATETIME = numpy.datetime64('2000-01-01T00:00:00.000', 'ms')
-_EPOCH_TIMESTAMP = numpy.datetime64('2000-01-01T00:00:00', 'ns')
+_EPOCH_QDATETIME = numpy.datetime64(_QEPOCH_MS, 'ms')
+_EPOCH_TIMESTAMP = numpy.datetime64(_EPOCH_QTIMESTAMP_NS, 'ns')
 
 
 _QMONTH_NULL = qnull(QMONTH)
@@ -256,7 +260,7 @@ def _from_qdatetime(raw):
     if numpy.isnan(raw) or raw == _QDATETIME_NULL:
         return _NUMPY_NULL[QDATETIME]
     else:
-        return _EPOCH_QDATETIME + numpy.timedelta64(long(_MILIS_PER_DAY * raw), 'ms')
+        return _EPOCH_QDATETIME + numpy.timedelta64(long(_MILLIS_PER_DAY * raw), 'ms')
 
 
 
@@ -265,7 +269,7 @@ def _to_qdatetime(dt):
     if t_dt == numpy.float64:
         return dt
     elif t_dt == numpy.datetime64:
-        return (dt - _EPOCH_QDATETIME).astype(float) / _MILIS_PER_DAY if not dt == _NUMPY_NULL[QDATETIME] else _QDATETIME_NULL
+        return (dt - _EPOCH_QDATETIME).astype(float) / _MILLIS_PER_DAY if not dt == _NUMPY_NULL[QDATETIME] else _QDATETIME_NULL
     else:
         raise ValueError('Cannot convert %s of type %s to q value.' % (dt, type(dt)))
 
@@ -391,19 +395,14 @@ _TO_Q = {
          }
 
 
-
-__EPOCH_QDATETIME_MS = _EPOCH_QDATETIME.astype(long)
-__MILIS_PER_DAY_FLOAT = float(_MILIS_PER_DAY)
-__EPOCH_QTIMESTAMP_NS = _EPOCH_TIMESTAMP.astype(long)
-
 _TO_RAW_LIST = {
                 QMONTH:      lambda a: (a - 360).astype(numpy.int32),
                 QDATE:       lambda a: (a - 10957).astype(numpy.int32),
-                QDATETIME:   lambda a: ((a - __EPOCH_QDATETIME_MS) / __MILIS_PER_DAY_FLOAT).astype(numpy.float64),
+                QDATETIME:   lambda a: ((a - _QEPOCH_MS) / _MILLIS_PER_DAY_FLOAT).astype(numpy.float64),
                 QMINUTE:     lambda a: a.astype(numpy.int32),
                 QSECOND:     lambda a: a.astype(numpy.int32),
                 QTIME:       lambda a: a.astype(numpy.int32),
-                QTIMESTAMP:  lambda a: a - __EPOCH_QTIMESTAMP_NS,
+                QTIMESTAMP:  lambda a: a - _EPOCH_QTIMESTAMP_NS,
                 QTIMESPAN:   None,
                 }
 
@@ -412,11 +411,11 @@ _TO_RAW_LIST = {
 _FROM_RAW_LIST = {
                   QMONTH:      lambda a: numpy.array((a + 360), dtype = 'datetime64[M]'),
                   QDATE:       lambda a: numpy.array((a + 10957), dtype = 'datetime64[D]'),
-                  QDATETIME:   lambda a: numpy.array((a * _MILIS_PER_DAY + __EPOCH_QDATETIME_MS), dtype = 'datetime64[ms]'),
+                  QDATETIME:   lambda a: numpy.array((a * _MILLIS_PER_DAY + _QEPOCH_MS), dtype = 'datetime64[ms]'),
                   QMINUTE:     lambda a: numpy.array(a, dtype = 'timedelta64[m]'),
                   QSECOND:     lambda a: numpy.array(a, dtype = 'timedelta64[s]'),
                   QTIME:       lambda a: numpy.array(a, dtype = 'timedelta64[ms]'),
-                  QTIMESTAMP:  lambda a: numpy.array((a + __EPOCH_QTIMESTAMP_NS), dtype = 'datetime64[ns]'),
+                  QTIMESTAMP:  lambda a: numpy.array((a + _EPOCH_QTIMESTAMP_NS), dtype = 'datetime64[ns]'),
                   QTIMESPAN:   lambda a: numpy.array(a, dtype = 'timedelta64[ns]'),
                   }
 

@@ -19,7 +19,7 @@ import pytest
 from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import *  # @UnusedWildImport
 from qpython.qtemporal import * # @UnusedWildImport
-from qpython.qtemporal import _MILIS_PER_DAY
+from qpython.qtemporal import _MILLIS_PER_DAY
 
 
 def test_is_null():
@@ -191,11 +191,11 @@ def test_array_to_raw_qtemporal():
         assert na[x] == x - 365
         x += 1
     
-    na_dt = numpy.arange('1999-01-01T00:00:00.000', '2001-01-04T05:36:57.600', 12345678, dtype='datetime64[ms]')
+    na_dt = numpy.arange('1999-01-01T00:00:00.000Z', '2001-01-04T05:36:57.600Z', 12345678, dtype='datetime64[ms]')
     na = array_to_raw_qtemporal(na_dt, qtype = QDATETIME_LIST)
     assert na.dtype == numpy.float64
     
-    step = 12346678. / _MILIS_PER_DAY
+    step = 12346678. / _MILLIS_PER_DAY
     
     assert na[0] == -365.0
     assert abs(na[-1] - 369.1677) < 0.001
@@ -204,7 +204,7 @@ def test_array_to_raw_qtemporal():
         ref = (x * step) - 365
         assert abs(na[x] - ref) < 0.1, '%s %s' %(na[x], ref)
         
-    na_dt = numpy.arange('1999-01-01T00:00:00.000', '2001-01-04T05:36:57.600', 1234567890000, dtype='datetime64[ns]')
+    na_dt = numpy.arange('1999-01-01T00:00:00.000Z', '2001-01-04T05:36:57.600Z', 1234567890000, dtype='datetime64[ns]')
     na = array_to_raw_qtemporal(na_dt, qtype = QTIMESTAMP_LIST)
     assert na.dtype == numpy.int64
     
@@ -306,14 +306,14 @@ def test_array_from_raw_qtemporal():
     assert str(na_dt.dtype).startswith('datetime64[ns]')
     for x in xrange(len(na_dt)):
         if na_dt[x] != numpy.datetime64('NaT', 'ns'):
-            assert na_dt[x].astype(numpy.int64) == raw[x] + numpy.datetime64('2000-01-01T00:00:00', 'ns').astype(long)
+            assert na_dt[x].astype(numpy.int64) == raw[x] + numpy.datetime64('2000-01-01T00:00:00Z', 'ns').astype(long)
         else:
             assert raw[x] == qnull(QTIMESTAMP)
             
             
     raw = numpy.array([3.234, qnull(QDATETIME)])
     na_dt = array_from_raw_qtemporal(raw, qtype = QDATETIME)
-    ref = numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), numpy.datetime64('nat', 'ms')])
+    ref = numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'), numpy.datetime64('nat', 'ms')])
     
     assert str(na_dt.dtype).startswith('datetime64[ms]')
     for x in xrange(len(na_dt)):
