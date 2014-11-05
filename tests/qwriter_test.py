@@ -55,13 +55,13 @@ EXPRESSIONS = OrderedDict((
                                                                       qtemporal(numpy.datetime64('NaT', 'D'), qtype=QDATE),
                                                                       numpy.datetime64('NaT', 'D'))),
                    ('2000.01.04T05:36:57.600 0Nz',                   (qlist(numpy.array([3.234, qnull(QDATETIME)]), qtype=QDATETIME_LIST),
-                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), numpy.datetime64('nat', 'ms')]), qtype=QDATETIME_LIST), qtype=QDATETIME_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'), numpy.datetime64('nat', 'ms')]), qtype=QDATETIME_LIST), qtype=QDATETIME_LIST),
                                                                       qlist([3.234, qnull(QDATETIME)], qtype=QDATETIME_LIST),
-                                                                      qlist(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), numpy.datetime64('nat', 'ms')]), qtype = QDATETIME_LIST),
-                                                                      numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), numpy.datetime64('nat', 'ms')])
+                                                                      qlist(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'), numpy.datetime64('nat', 'ms')]), qtype = QDATETIME_LIST),
+                                                                      numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'), numpy.datetime64('nat', 'ms')])
                                                                       )),
-                   ('2000.01.04T05:36:57.600',                       (qtemporal(numpy.datetime64('2000-01-04T05:36:57.600', 'ms'), qtype=QDATETIME),
-                                                                      numpy.datetime64('2000-01-04T05:36:57.600', 'ms'))),
+                   ('2000.01.04T05:36:57.600',                       (qtemporal(numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'), qtype=QDATETIME),
+                                                                      numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'))),
                    ('0Nz',                                           (qtemporal(qnull(QDATETIME), qtype=QDATETIME),
                                                                       qtemporal(numpy.datetime64('NaT', 'ms'), qtype=QDATETIME),
                                                                       numpy.datetime64('NaT', 'ms'))),
@@ -98,13 +98,13 @@ EXPRESSIONS = OrderedDict((
                                                                       qtemporal(numpy.timedelta64('NaT', 'ms'), qtype=QTIME),
                                                                       numpy.timedelta64('NaT', 'ms'))),
                    ('2000.01.04D05:36:57.600 0Np',                   (qlist(numpy.array([long(279417600000000), qnull(QTIMESTAMP)]), qtype=QTIMESTAMP_LIST),
-                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ns'), numpy.datetime64('nat', 'ns')]), qtype=QTIMESTAMP_LIST), qtype=QTIMESTAMP_LIST),
+                                                                      qlist(array_to_raw_qtemporal(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ns'), numpy.datetime64('nat', 'ns')]), qtype=QTIMESTAMP_LIST), qtype=QTIMESTAMP_LIST),
                                                                       qlist([long(279417600000000), qnull(QTIMESTAMP)], qtype=QTIMESTAMP_LIST),
-                                                                      qlist(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ns'), numpy.datetime64('nat', 'ns')]), qtype = QTIMESTAMP_LIST),
-                                                                      numpy.array([numpy.datetime64('2000-01-04T05:36:57.600', 'ns'), numpy.datetime64('nat', 'ns')])
+                                                                      qlist(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ns'), numpy.datetime64('nat', 'ns')]), qtype = QTIMESTAMP_LIST),
+                                                                      numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ns'), numpy.datetime64('nat', 'ns')])
                                                                       )),
-                   ('2000.01.04D05:36:57.600',                       (qtemporal(numpy.datetime64('2000-01-04T05:36:57.600', 'ns'), qtype=QTIMESTAMP),
-                                                                      numpy.datetime64('2000-01-04T05:36:57.600', 'ns'))),
+                   ('2000.01.04D05:36:57.600',                       (qtemporal(numpy.datetime64('2000-01-04T05:36:57.600Z', 'ns'), qtype=QTIMESTAMP),
+                                                                      numpy.datetime64('2000-01-04T05:36:57.600Z', 'ns'))),
                    ('0Np',                                           (qtemporal(qnull(QTIMESTAMP), qtype=QTIMESTAMP),
                                                                       qtemporal(numpy.datetime64('NaT', 'ns'), qtype=QTIMESTAMP),
                                                                       numpy.datetime64('NaT', 'ns'))),
@@ -339,11 +339,11 @@ def test_writing():
             for object in value:
                 sys.stdout.write( '.' )
                 serialized = binascii.hexlify(w.write(object, 1))[16:].lower()
-                assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (object,  BINARY[query].lower(), serialized)
+                assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
         else:
             sys.stdout.write( '.' )
             serialized = binascii.hexlify(w.write(value, 1))[16:].lower()
-            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value,  BINARY[query].lower(), serialized)
+            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
         
         print ''        
         
