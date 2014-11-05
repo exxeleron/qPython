@@ -1,0 +1,27 @@
+package:
+  name: qpython
+  version: 1.0RC
+
+build:
+    number: 1
+
+requirements:
+  build:
+    - python
+    - numpy
+    - pandas
+    - cython
+    - libpython
+
+  run:
+    - python
+    - numpy
+    - pandas
+
+test:
+  imports:
+    - qpython
+
+about:
+  home: https://github.com/exxeleron/qPython
+  license: 'Apache License Version 2.0'
