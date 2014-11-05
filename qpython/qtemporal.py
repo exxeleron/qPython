@@ -17,13 +17,15 @@
 from qpython import MetaData
 from qtype import *  # @UnusedWildImport
 
+import pandas as pd
+
 
 _MILIS_PER_DAY = 24 * 60 * 60 * 1000
 
 _EPOCH_QMONTH = numpy.datetime64('2000-01', 'M')
 _EPOCH_QDATE = numpy.datetime64('2000-01-01', 'D')
-_EPOCH_QDATETIME = numpy.datetime64('2000-01-01T00:00:00.000', 'ms')
-_EPOCH_TIMESTAMP = numpy.datetime64('2000-01-01T00:00:00', 'ns')
+_EPOCH_QDATETIME = pd.Timestamp('2000-01-01 00:00:00.000')
+_EPOCH_TIMESTAMP = pd.Timestamp('2000-01-01 00:00:00')
 
 
 _QMONTH_NULL = qnull(QMONTH)
@@ -392,9 +394,9 @@ _TO_Q = {
 
 
 
-__EPOCH_QDATETIME_MS = _EPOCH_QDATETIME.astype(long)
+__EPOCH_QDATETIME_MS = int(_EPOCH_QDATETIME.value // 1e6)
 __MILIS_PER_DAY_FLOAT = float(_MILIS_PER_DAY)
-__EPOCH_QTIMESTAMP_NS = _EPOCH_TIMESTAMP.astype(long)
+__EPOCH_QTIMESTAMP_NS = _EPOCH_TIMESTAMP.value
 
 _TO_RAW_LIST = {
                 QMONTH:      lambda a: (a - 360).astype(numpy.int32),
