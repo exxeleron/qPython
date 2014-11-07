@@ -125,6 +125,10 @@ try:
                                                                                                             ('nsc', [pandas.Series(numpy.array([1, 2], dtype = numpy.int64)), pandas.Series(numpy.array([3, 4], dtype = numpy.int64)), pandas.Series(numpy.array([5, 6, 7], dtype = numpy.int64))])))
                                                                                                ),
                                                                       'meta': MetaData(**{'qtype': QTABLE, 'nsc': QGENERAL_LIST, 'sc': QLONG_LIST}) }),
+                     ('([] sc:1 2 3; nsc:(1 2; 3 4; 5 6))',          {'data': pandas.DataFrame(OrderedDict((('sc', pandas.Series(numpy.array([1, 2, 3], dtype = numpy.int64))),
+                                                                                                            ('nsc', [pandas.Series(numpy.array([1, 2], dtype = numpy.int64)), pandas.Series(numpy.array([3, 4], dtype = numpy.int64)), pandas.Series(numpy.array([5, 6], dtype = numpy.int64))])))
+                                                                                               ),
+                                                                      'meta': MetaData(**{'qtype': QTABLE, 'nsc': QGENERAL_LIST, 'sc': QLONG_LIST}) }),
                      ('([] name:`symbol$(); iq:`int$())',            {'data': pandas.DataFrame(OrderedDict((('name', pandas.Series(numpy.array([], dtype = numpy.string_))),
                                                                                                             ('iq', pandas.Series(numpy.array([], dtype = numpy.int32)))))
                                                                                                ),

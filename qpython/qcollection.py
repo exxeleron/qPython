@@ -165,7 +165,14 @@ def qlist(array, adjust_dtype = True, **meta):
     :raises: `ValueError` 
     '''
     if type(array) in (list, tuple):
-        array = numpy.array(array)
+        if meta and 'qtype' in meta and meta['qtype'] == QGENERAL_LIST:
+            # force shape and dtype for generic lists
+            tarray = numpy.ndarray(shape = len(array), dtype = numpy.dtype('O'))
+            for i in xrange(len(array)):
+                tarray[i] = array[i]
+            array = tarray
+        else:        
+            array = numpy.array(array)
 
     if not isinstance(array, numpy.ndarray):
         raise ValueError('array parameter is expected to be of type: numpy.ndarray, list or tuple. Was: %s' % type(array))
@@ -366,8 +373,11 @@ def qtable(columns, data, **meta):
         if columns[i] in meta:
             data[i] = qlist(data[i], qtype = meta[columns[i]])
         elif not isinstance(data[i], QList):
-            data[i] = qlist(data[i])
-
+            if type(data[i]) in (list, tuple):
+                data[i] = qlist(data[i], qtype = QGENERAL_LIST)
+            else:
+                data[i] = qlist(data[i])
+        
         meta[columns[i]] = data[i].meta.qtype
         dtypes.append((columns[i], data[i].dtype))
 

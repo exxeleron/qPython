@@ -78,9 +78,11 @@ class PandasQReader(QReader):
                     meta[columns[i]] = QSTRING
                     odict[columns[i]] = numpy.array(list(data[i]), dtype = numpy.str)
                 elif isinstance(data[i], (list, tuple)):
-                    # convert character list (represented as string) to numpy representation
                     meta[columns[i]] = QGENERAL_LIST
-                    odict[columns[i]] = numpy.array(list(data[i]))
+                    tarray = numpy.ndarray(shape = len(data[i]), dtype = numpy.dtype('O'))
+                    for j in xrange(len(data[i])):
+                        tarray[j] = data[i][j]
+                    odict[columns[i]] = tarray
                 else:
                     meta[columns[i]] = data[i].meta.qtype
                     odict[columns[i]] = data[i]
