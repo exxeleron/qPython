@@ -11,7 +11,7 @@ requirements:
     - numpy
     - pandas
     - cython
-    - libpython
+    - libpython [win]
 
   run:
     - python
