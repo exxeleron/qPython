@@ -36,12 +36,15 @@ try:
                                                                      {'data': pandas.Series(numpy.array([uuid.UUID('8c680a01-5a49-5aab-5a65-d4bfddb6a661'), numpy.nan])),
                                                                       'meta': MetaData(qtype = QGUID_LIST) }),
                      ('"quick brown fox jumps over a lazy dog"',     'quick brown fox jumps over a lazy dog'),
+                     ('" "',                                         ' '),
                      ('``quick``fox',                                {'data': pandas.Series(numpy.array([qnull(QSYMBOL), numpy.string_('quick'), qnull(QSYMBOL), numpy.string_('fox')])),
                                                                       'meta': MetaData(qtype = QSYMBOL_LIST) }),
                      ('`the`quick`brown`fox',                        {'data': pandas.Series(numpy.array([numpy.string_('the'), numpy.string_('quick'), numpy.string_('brown'), numpy.string_('fox')])),
                                                                       'meta': MetaData(qtype = QSYMBOL_LIST) }),
                      ('("quick"; "brown"; "fox"; "jumps"; "over"; "a lazy"; "dog")',
                                                                        ['quick', 'brown', 'fox', 'jumps', 'over', 'a lazy', 'dog']),
+                     ('("quick"; " "; "fox"; "jumps"; "over"; "a lazy"; "dog")',
+                                                                       ['quick', numpy.nan, 'fox', 'jumps', 'over', 'a lazy', 'dog']),
   
                      ('(0b;1b;0b)',                                  {'data': pandas.Series(numpy.array([False, True, False], dtype = numpy.bool)),
                                                                       'meta': MetaData(qtype = QBOOL_LIST) }),
@@ -110,7 +113,7 @@ try:
                      ('flip `name`iq`grade!(`Dent`Beeblebrox`Prefect;98 42 126;"a c")',
                                                                      {'data': pandas.DataFrame(OrderedDict((('name', pandas.Series(['Dent', 'Beeblebrox', 'Prefect'])),
                                                                                                             ('iq', pandas.Series(numpy.array([98, 42, 126], dtype = numpy.int64))),
-                                                                                                            ('grade', pandas.Series(list("a c"))),
+                                                                                                            ('grade', pandas.Series(["a", numpy.nan,"c"])),
                                                                                                              ))
                                                                                                ),
                                                                       'meta': MetaData(**{'qtype': QTABLE, 'name': QSYMBOL_LIST, 'iq': QLONG_LIST, 'grade': QSTRING}) }),
@@ -118,6 +121,13 @@ try:
                                                                      {'data': pandas.DataFrame(OrderedDict((('name', pandas.Series(['Dent', 'Beeblebrox', 'Prefect'])),
                                                                                                             ('iq', pandas.Series(numpy.array([98, 42, 126], dtype = numpy.int64))),
                                                                                                             ('fullname', pandas.Series(["Arthur Dent", "Zaphod Beeblebrox", "Ford Prefect"])),
+                                                                                                             ))
+                                                                                               ),
+                                                                      'meta': MetaData(**{'qtype': QTABLE, 'name': QSYMBOL_LIST, 'iq': QLONG_LIST, 'fullname': QSTRING_LIST}) }),
+                     ('flip `name`iq`fullname!(`Dent`Beeblebrox`Prefect;98 42 126;("Arthur Dent"; " "; "Ford Prefect"))',
+                                                                     {'data': pandas.DataFrame(OrderedDict((('name', pandas.Series(['Dent', 'Beeblebrox', 'Prefect'])),
+                                                                                                            ('iq', pandas.Series(numpy.array([98, 42, 126], dtype = numpy.int64))),
+                                                                                                            ('fullname', pandas.Series(["Arthur Dent", numpy.nan, "Ford Prefect"])),
                                                                                                              ))
                                                                                                ),
                                                                       'meta': MetaData(**{'qtype': QTABLE, 'name': QSYMBOL_LIST, 'iq': QLONG_LIST, 'fullname': QSTRING_LIST}) }),

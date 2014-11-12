@@ -76,7 +76,7 @@ class PandasQReader(QReader):
                 if isinstance(data[i], str):
                     # convert character list (represented as string) to numpy representation
                     meta[columns[i]] = QSTRING
-                    odict[columns[i]] = numpy.array(list(data[i]), dtype = numpy.str)
+                    odict[columns[i]] = pandas.Series(list(data[i]), dtype = numpy.str).replace(' ', numpy.nan)
                 elif isinstance(data[i], (list, tuple)):
                     meta[columns[i]] = QGENERAL_LIST
                     tarray = numpy.ndarray(shape = len(data[i]), dtype = numpy.dtype('O'))
@@ -113,6 +113,15 @@ class PandasQReader(QReader):
             return list
 
 
+    @parse(QGENERAL_LIST)
+    def _read_general_list(self, qtype = QGENERAL_LIST, options = READER_CONFIGURATION):
+        list = QReader._read_general_list(self, qtype, options)
+        if options.pandas:
+            return [numpy.nan if isinstance(element, basestring) and element == ' ' else element for element in list]
+        else:
+            return list
+
+
 
 class PandasQWriter(QWriter):
 
@@ -145,7 +154,7 @@ class PandasQWriter(QWriter):
         if qtype == QGENERAL_LIST:
             self._write_generic_list(data.as_matrix())
         elif qtype == QCHAR:
-            self._write_string(data.as_matrix().astype(numpy.string_).tostring())
+            self._write_string(data.replace(numpy.nan, ' ').as_matrix().astype(numpy.string_).tostring())
         elif data.dtype.type not in (numpy.datetime64, numpy.timedelta64):
             data = data.fillna(QNULLMAP[-abs(qtype)][1])
             data = data.as_matrix()
@@ -158,7 +167,6 @@ class PandasQWriter(QWriter):
             data = data.as_matrix()
             data = data.astype(TEMPORAL_Q_TYPE[qtype])
             self._write_list(data, qtype = qtype)
-
 
 
     @serialize(pandas.DataFrame)
@@ -184,3 +192,10 @@ class PandasQWriter(QWriter):
         for column in data_columns:
             self._write_pandas_series(data[column], qtype = data.meta[column] if hasattr(data, 'meta') else None)
 
+
+    @serialize(tuple, list)
+    def _write_generic_list(self, data):
+        self._buffer.write(struct.pack('=bxi', QGENERAL_LIST, len(data)))
+        for element in data:
+            # assume nan represents a string null
+            self._write(' ' if type(element) in [float, numpy.float32, numpy.float64] and numpy.isnan(element) else element)
