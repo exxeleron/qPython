@@ -17,7 +17,7 @@
 __all__ = ['qconnection', 'qtype', 'qtemporal', 'qcollection']
 
 
-__version__ = '1.0RC1'
+__version__ = '1.0RC2'
 
 class MetaData(object):
     '''Utility class for enriching data structures with meta data, e.g. qtype hint.'''
