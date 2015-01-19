@@ -5,7 +5,8 @@ Synchronous query
 *****************
 
 Following example presents how to execute simple, synchronous query against a remote q process:
-::
+
+.. code:: python
 
     from qpython import qconnection
     
@@ -50,7 +51,8 @@ Asynchronous query
 ******************
 
 Following example presents how to execute simple, asynchronous query against a remote q process:
-::
+
+.. code:: python
 
     import random
     import threading
@@ -130,7 +132,8 @@ Interactive console
 *******************
 
 This example depicts how to create a simple interactive console for communication with a q process:
-::
+
+.. code:: python
 
     from qpython import qconnection
     from qpython.qtype import QException
@@ -163,7 +166,11 @@ Twisted integration
 *******************
 
 This example presents how the `qPython` can be used along with `Twisted`_ to build asynchronous client:
-::
+
+.. note:: 
+    This sample code overwrites `.u.sub` and `.z.ts` functions on q process.
+
+.. code:: python
 
     import struct
     import sys
@@ -315,7 +322,8 @@ Subscribing to tick service
 ***************************
 
 This example depicts how to subscribe to standard kdb+ tickerplant service:
-::
+
+.. code:: python
 
    import numpy
    import threading
@@ -386,7 +394,8 @@ Data publisher
 **************
 
 This example shows how to stream data to the kdb+ process using standard tickerplant API:
-::
+
+.. code:: python
 
     import datetime
     import numpy
