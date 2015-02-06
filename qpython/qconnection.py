@@ -156,7 +156,7 @@ class QConnection(object):
 
     def _initialize(self):
         '''Performs a IPC protocol handshake.'''
-        credentials = self.username + ':' + self.password if self.password else ''
+        credentials = self.username + ':' + (self.password if self.password else '')
         self._connection.send(credentials + '\3\0')
         response = self._connection.recv(1)
 
