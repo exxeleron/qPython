@@ -38,7 +38,7 @@ def read(fname):
 
 
 setup(name = 'qPython',
-      version = '1.0 RC2',
+      version = '1.0.0',
       description = 'kdb+ interfacing library for Python',
       long_description=read('README.rst'),
 
@@ -50,9 +50,9 @@ setup(name = 'qPython',
       ext_modules = ext_modules,
       include_dirs = [numpy.get_include()],
 
-      keywords = ['kdb+'],
+      keywords = ['kdb+', 'q'],
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
           'Environment :: Console',
           'Intended Audience :: Developers',
           'Intended Audience :: Education',

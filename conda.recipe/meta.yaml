@@ -1,6 +1,6 @@
 package:
   name: qpython
-  version: 1.0RC
+  version: 1.0.0
 
 build:
     number: 1
