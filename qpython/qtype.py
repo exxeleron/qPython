@@ -1,18 +1,18 @@
-# 
+#
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 '''
 The `qpython.qtype` module defines number of utility function which help to work
@@ -152,15 +152,15 @@ QERROR              = -0x80
 
 
 
-ATOM_SIZE = ( 0, 1, 16, 0, 1, 2, 4, 8, 4, 8, 1, 0, 8, 4, 4, 8, 8, 4, 4, 4 )
+ATOM_SIZE = (0, 1, 16, 0, 1, 2, 4, 8, 4, 8, 1, 0, 8, 4, 4, 8, 8, 4, 4, 4)
 
 
 
-# mapping of q atoms to corresponding Python types 
+# mapping of q atoms to corresponding Python types
 PY_TYPE = {
     QBOOL:          numpy.bool_,
     QBYTE:          numpy.byte,
-    QGUID:          numpy.object_, 
+    QGUID:          numpy.object_,
     QSHORT:         numpy.int16,
     QINT:           numpy.int32,
     QLONG:          numpy.int64,
@@ -181,7 +181,7 @@ PY_TYPE = {
     }
 
 
-# mapping of Python types to corresponding q atoms 
+# mapping of Python types to corresponding q atoms
 Q_TYPE = {
     bool             : QBOOL,
     numpy.bool       : QBOOL,
@@ -233,12 +233,12 @@ STRUCT_MAP = {
     QSHORT:     'h',
     QINT:       'i',
     QLONG:      'q',
-    QFLOAT:     'f',  
-    QDOUBLE:    'd',  
+    QFLOAT:     'f',
+    QDOUBLE:    'd',
     QSTRING:    's',
     QSYMBOL:    'S',
     QCHAR:      'b',
-                
+
     QMONTH:     'i',
     QDATE:      'i',
     QDATETIME:  'd',
@@ -251,12 +251,12 @@ STRUCT_MAP = {
 
 
 # null definitions
-_QNULL1 = numpy.int8(-2**7)
-_QNULL2 = numpy.int16(-2**15)
-_QNULL4 = numpy.int32(-2**31)
-_QNULL8 = numpy.int64(-2**63)
-_QNAN32 = numpy.fromstring('\x00\x00\xc0\x7f', dtype=numpy.float32)[0]
-_QNAN64 = numpy.fromstring('\x00\x00\x00\x00\x00\x00\xf8\x7f', dtype=numpy.float64)[0]
+_QNULL1 = numpy.int8(-2 ** 7)
+_QNULL2 = numpy.int16(-2 ** 15)
+_QNULL4 = numpy.int32(-2 ** 31)
+_QNULL8 = numpy.int64(-2 ** 63)
+_QNAN32 = numpy.fromstring('\x00\x00\xc0\x7f', dtype = numpy.float32)[0]
+_QNAN64 = numpy.fromstring('\x00\x00\x00\x00\x00\x00\xf8\x7f', dtype = numpy.float64)[0]
 _QNULL_BOOL = numpy.bool_(False)
 _QNULL_SYM = numpy.string_('')
 _QNULL_GUID = uuid.UUID('00000000-0000-0000-0000-000000000000')
@@ -318,7 +318,7 @@ class QException(Exception):
 
 class QFunction(object):
     '''Represents a q function.'''
-    
+
     def __init__(self, qtype):
         self.qtype = qtype
 
@@ -329,7 +329,7 @@ class QFunction(object):
 
 
 class QLambda(QFunction):
-    
+
     '''Represents a q lambda expression.
     
     .. note:: `expression` is trimmed and required to be valid q function 
@@ -342,15 +342,15 @@ class QLambda(QFunction):
     '''
     def __init__(self, expression):
         QFunction.__init__(self, QLAMBDA)
-        
+
         if not expression:
             raise ValueError('Lambda expression cannot be None or empty')
-        
+
         expression = expression.strip()
-        
+
         if not QLambda._EXPRESSION_REGEX.match(expression):
             raise ValueError('Invalid lambda expression: %s' % expression)
-        
+
         self.expression = expression
 
 
@@ -367,7 +367,7 @@ class QLambda(QFunction):
 
 
 class QProjection(QFunction):
-    
+
     '''Represents a q projection.
     
     :Parameters:
@@ -375,23 +375,23 @@ class QProjection(QFunction):
     '''
     def __init__(self, parameters):
         QFunction.__init__(self, QPROJECTION)
-        
+
         self.parameters = parameters
 
-        
+
     def __str__(self):
         parameters_str = []
         for arg in self.parameters:
             parameters_str.append('%s' % arg)
-            
+
         return '%s(%s)' % (self.__class__.__name__, ', '.join(parameters_str))
 
 
     def __eq__(self, other):
         return (not self.parameters and not other.parameters) or \
-                reduce(lambda v1,v2: v1 or v2, map(lambda v: v in self.parameters, other.parameters))
+                reduce(lambda v1, v2: v1 or v2, map(lambda v: v in self.parameters, other.parameters))
 
-        
+
     def __ne__(self, other):
         return not self.__eq__(other)
 

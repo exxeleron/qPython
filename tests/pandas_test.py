@@ -170,11 +170,11 @@ try:
             return False
 
         if type(left) in [numpy.ndarray, pandas.Series] and left.dtype != right.dtype:
-            print 'Type comparison failed: %s != %s' % (left.dtype, right.dtype)
+            print('Type comparison failed: %s != %s' % (left.dtype, right.dtype))
             return False
 
         if type(left) == QList and left.meta.qtype != right.meta.qtype:
-            print 'QType comparison failed: %s != %s' % (left.meta.qtype, right.meta.qtype)
+            print('QType comparison failed: %s != %s' % (left.meta.qtype, right.meta.qtype))
             return False
 
         if len(left) != len(right):
@@ -182,11 +182,11 @@ try:
 
         for i in xrange(len(left)):
             if type(left[i]) != type(right[i]):
-                print 'Type comparison failed: %s != %s' % (type(left[i]), type(right[i]))
+                print('Type comparison failed: %s != %s' % (type(left[i]), type(right[i])))
                 return False
 
             if not compare(left[i], right[i]):
-                print 'Value comparison failed: %s != %s' % (left[i], right[i])
+                print('Value comparison failed: %s != %s' % (left[i], right[i]))
                 return False
 
         return True
@@ -229,7 +229,7 @@ try:
         
 
     def test_reading_pandas():
-        print 'Deserialization (pandas)'
+        print('Deserialization (pandas)')
         for query, value in PANDAS_EXPRESSIONS.iteritems():
             buffer_ = cStringIO.StringIO()
             binary = binascii.unhexlify(BINARY[query])
@@ -254,11 +254,11 @@ try:
                     assert compare(value['data'], result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value['data'], result)
                 else:
                     assert compare(value, result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value, result)
-                print '.'
+                print('.')
             except QException, e:
                 assert isinstance(value, QException)
                 assert e.message == value.message
-                print '.'
+                print('.')
 
 
     def test_writing_pandas():
@@ -278,7 +278,7 @@ try:
             assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value,  BINARY[query].lower(), serialized)
             sys.stdout.write( '.' )
                
-            print ''
+            print('')
             
         for query, value in PANDAS_EXPRESSIONS_ALT.iteritems():
             sys.stdout.write( '%-75s' % query )
@@ -294,7 +294,7 @@ try:
             assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value,  BINARY[query].lower(), serialized)
             sys.stdout.write( '.' )
             
-            print '' 
+            print('')
 
 
     init()

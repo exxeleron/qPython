@@ -1,18 +1,18 @@
-# 
+#
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 import struct
 import sys
@@ -38,7 +38,7 @@ class IPCProtocol(Protocol):
         self.credentials = self.factory.username + ':' + self.factory.password if self.factory.password else ''
 
         self.transport.write(self.credentials + '\3\0')
-        
+
         self._message = None
 
     def dataReceived(self, data):
@@ -47,13 +47,13 @@ class IPCProtocol(Protocol):
                 if not self._message:
                     self._message = self._reader.read_header(source = data)
                     self._buffer = ''
-                    
+
                 self._buffer += data
                 buffer_len = len(self._buffer) if self._buffer else 0
-                
+
                 while self._message and self._message.size <= buffer_len:
                     complete_message = self._buffer[:self._message.size]
-                    
+
                     if buffer_len > self._message.size:
                         self._buffer = self._buffer[self._message.size:]
                         buffer_len = len(self._buffer) if self._buffer else 0
@@ -68,7 +68,7 @@ class IPCProtocol(Protocol):
                 self.factory.onError(sys.exc_info())
                 self._message = None
                 self._buffer = ''
-                
+
         elif self.state == IPCProtocol.State.UNKNOWN:
             # handshake
             if len(data) == 1:
@@ -76,7 +76,7 @@ class IPCProtocol(Protocol):
             else:
                 self.state = IPCProtocol.State.HANDSHAKE
                 self.transport.write(self.credentials + '\0')
-                
+
         else:
             # protocol version fallback
             if len(data) == 1:
@@ -120,7 +120,7 @@ class IPCClientFactory(ClientFactory):
 
 
     def clientConnectionLost(self, connector, reason):
-        print 'Lost connection.  Reason:', reason
+        print('Lost connection.  Reason: %s' % reason)
         # connector.connect()
 
     def clientConnectionFailed(self, connector, reason):
@@ -147,22 +147,22 @@ class IPCClientFactory(ClientFactory):
 
 
 def onConnectSuccess(source):
-    print 'Connected, protocol version: ', source.client.protocol_version
+    print('Connected, protocol version: %s' % source.client.protocol_version)
     source.query(MessageType.SYNC, '.z.ts:{(handle)(`timestamp$100?1000000000000000000)}')
     source.query(MessageType.SYNC, '.u.sub:{[t;s] handle:: neg .z.w}')
     source.query(MessageType.ASYNC, '.u.sub', 'trade', '')
 
 
 def onConnectFail(source, reason):
-    print 'Connection refused: ', reason
+    print('Connection refused: %s' % reason)
 
 
 def onMessage(source, message):
-    print 'Received: ', message.type, message.data
+    print('Received: %s %s' % (message.type, message.data))
 
 
 def onError(source, error):
-    print 'Error: ', error
+    print('Error: %s' % error)
 
 
 if __name__ == '__main__':

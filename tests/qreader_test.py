@@ -235,11 +235,11 @@ def arrays_equal(left, right):
         return False
     
     if type(left) == numpy.ndarray and left.dtype != right.dtype:
-        print 'Type comparison failed: %s != %s' % (left.dtype, right.dtype)
+        print('Type comparison failed: %s != %s' % (left.dtype, right.dtype))
         return False
     
     if type(left) == QList and left.meta.qtype != right.meta.qtype:
-        print 'QType comparison failed: %s != %s' % (left.meta.qtype, right.meta.qtype)
+        print('QType comparison failed: %s != %s' % (left.meta.qtype, right.meta.qtype))
         return False
     
     if len(left) != len(right):
@@ -247,11 +247,11 @@ def arrays_equal(left, right):
     
     for i in xrange(len(left)):
         if type(left[i]) != type(right[i]):
-            print 'Type comparison failed: %s != %s' % (type(left[i]), type(right[i]))
+            print('Type comparison failed: %s != %s' % (type(left[i]), type(right[i])))
             return False
     
         if not compare(left[i], right[i]):
-            print 'Value comparison failed: %s != %s' % ( left[i], right[i])
+            print('Value comparison failed: %s != %s' % ( left[i], right[i]))
             return False
 
     return True
@@ -284,7 +284,7 @@ def test_reading():
             BINARY[query] = binary
 
     buffer_reader = qreader.QReader(None)
-    print 'Deserialization'
+    print('Deserialization')
     for query, value in EXPRESSIONS.iteritems():
         buffer_ = cStringIO.StringIO()
         binary = binascii.unhexlify(BINARY[query])
@@ -315,11 +315,11 @@ def test_reading():
             stream_reader = qreader.QReader(buffer_)
             result = stream_reader.read().data
             assert compare(value, result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value, result)
-            print '.'
+            print('.')
         except QException, e:
             assert isinstance(value, QException)
             assert e.message == value.message
-            print '.'
+            print('.')
 
 
 
@@ -336,7 +336,7 @@ def test_reading_numpy_temporals():
 
             BINARY[query] = binary
 
-    print 'Deserialization (numpy temporals)'
+    print('Deserialization (numpy temporals)')
     for query, value in NUMPY_TEMPORAL_EXPRESSIONS.iteritems():
         buffer_ = cStringIO.StringIO()
         binary = binascii.unhexlify(BINARY[query])
@@ -352,11 +352,11 @@ def test_reading_numpy_temporals():
             stream_reader = qreader.QReader(buffer_)
             result = stream_reader.read(numpy_temporals = True).data
             assert compare(value, result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value, result)
-            print '.'
+            print('.')
         except QException, e:
             assert isinstance(value, QException)
             assert e.message == value.message
-            print '.'
+            print('.')
 
 
 
@@ -373,7 +373,7 @@ def test_reading_compressed():
 
             BINARY[query] = binary
           
-    print 'Compressed deserialization'  
+    print('Compressed deserialization')  
     buffer_reader = qreader.QReader(None)
     for query, value in COMPRESSED_EXPRESSIONS.iteritems():
         buffer_ = cStringIO.StringIO()
@@ -396,11 +396,11 @@ def test_reading_compressed():
             stream_reader = qreader.QReader(buffer_)
             result = stream_reader.read().data
             assert compare(value, result), 'deserialization failed: %s' % (query)
-            print '.'
+            print('.')
         except QException, e:
             assert isinstance(value, QException)
             assert e.message == value.message
-            print '.'
+            print('.')
 
         
 

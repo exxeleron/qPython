@@ -350,7 +350,7 @@ def test_writing():
             serialized = binascii.hexlify(w.write(value, 1))[16:].lower()
             assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
         
-        print ''        
+        print('')
         
 
 

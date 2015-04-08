@@ -52,8 +52,8 @@ class QConnection(object):
     used with a ``with`` statement::
     
         with qconnection.QConnection(host = 'localhost', port = 5000) as q:
-            print q
-            print q('{`int$ til x}', 10)
+            print(q)
+            print(q('{`int$ til x}', 10))
     
     :Parameters:
      - `host` (`string`) - q service hostname
@@ -222,27 +222,27 @@ class QConnection(object):
         
         Executes a q expression:
         
-            >>> print q.sync('til 10')
+            >>> print(q.sync('til 10'))
             [0 1 2 3 4 5 6 7 8 9]
         
         Executes an anonymous q function with a single parameter:
         
-            >>> print q.sync('{til x}', 10)
+            >>> print(q.sync('{til x}', 10))
             [0 1 2 3 4 5 6 7 8 9]
             
         Executes an anonymous q function with two parameters:
         
-            >>> print q.sync('{y + til x}', 10, 1)
+            >>> print(q.sync('{y + til x}', 10, 1))
             [ 1  2  3  4  5  6  7  8  9 10]
             
-            >>> print q.sync('{y + til x}', *[10, 1])
+            >>> print(q.sync('{y + til x}', *[10, 1]))
             [ 1  2  3  4  5  6  7  8  9 10]
         
         The :func:`.sync` is called from the overloaded :func:`.__call__` 
         function. This allows :class:`.QConnection` instance to be called as 
         a function:
         
-            >>> print q('{y + til x}', 10, 1)
+            >>> print(q('{y + til x}', 10, 1))
             [ 1  2  3  4  5  6  7  8  9 10]
         
         
@@ -304,20 +304,20 @@ class QConnection(object):
         Retrieves query result along with meta-information:
         
             >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
-            >>> print q.receive(data_only = False, raw = False)
+            >>> print(q.receive(data_only = False, raw = False))
             QMessage: message type: 2, data size: 13, is_compressed: False, data: 10
 
         Retrieves parsed query result:
 
             >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
-            >>> print q.receive(data_only = True, raw = False)
+            >>> print(q.receive(data_only = True, raw = False))
             10
 
         Retrieves not-parsed (raw) query result:
         
             >>> from binascii import hexlify
             >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
-            >>> print hexlify(q.receive(data_only = True, raw = True))
+            >>> print(hexlify(q.receive(data_only = True, raw = True)))
             fa0a000000
                 
         :Parameters:

@@ -148,7 +148,7 @@ def array_from_raw_qtemporal(raw, qtype):
     Examples:
     
       >>> raw = numpy.array([366, 121, qnull(QDATE)])
-      >>> print array_from_raw_qtemporal(raw, qtype = QDATE)
+      >>> print(array_from_raw_qtemporal(raw, qtype = QDATE))
       ['2001-01-01' '2000-05-01' 'NaT']
     
     :Parameters:
@@ -185,7 +185,7 @@ def array_to_raw_qtemporal(array, qtype):
     Examples:
     
       >>> na_dt = numpy.arange('1999-01-01', '2005-12-31', dtype='datetime64[D]')
-      >>> print array_to_raw_qtemporal(na_dt, qtype = QDATE_LIST)
+      >>> print(array_to_raw_qtemporal(na_dt, qtype = QDATE_LIST))
       [-365 -364 -363 ..., 2188 2189 2190]
       >>> array_to_raw_qtemporal(numpy.arange(-20, 30, dtype='int32'), qtype = QDATE_LIST)
       Traceback (most recent call last):

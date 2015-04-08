@@ -183,7 +183,7 @@ class PandasQWriter(QWriter):
             self._buffer.write(struct.pack('=bxi', QGENERAL_LIST, len(index_columns)))
             for column in index_columns:
                 self._write_pandas_series(data[column], qtype = data.meta[column] if hasattr(data, 'meta') else None)
-            
+
             data.set_index(index_columns, inplace = True)
 
         self._buffer.write(struct.pack('=bxb', QTABLE, QDICTIONARY))
