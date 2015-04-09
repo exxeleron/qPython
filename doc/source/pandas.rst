@@ -85,5 +85,143 @@ rules:
     ``pandas.DataFrame`` serialization.
 
 
+Type hinting
+************
+
+`qPython` applies following heuristic to determinate conversion between pandas
+and q types:
+
+- ``pandas.DataFrame`` are serialized to q tables,
+
+- ``pandas.Series`` are serialized to q lists according to these rules:
+
+  - type of q list is determinate based on series `dtype`,
+  - if mapping based on `dtype` is ambiguous (e.g. `dtype` is `object`),
+    q type is determined by type of the first element in the array.
+
+
+User can overwrite the default type mapping, by setting the ``meta`` attribute
+and provide additional information for the serializer.
+
+Lists conversions
++++++++++++++++++
+
+By default, series of ``datetime64`` is mapped to q timestamp::
+
+    pandas.Series(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'), numpy.datetime64('nat', 'ms')]))
+    # 2000.01.04D05:36:57.600000000 0N (type 12h)
+
+``meta`` attribute, can be used to change this and convert the series to, for
+example, q date list::
+
+    l = pandas.Series(numpy.array([numpy.datetime64('2000-01-04T05:36:57.600Z', 'ms'), numpy.datetime64('nat', 'ms')]))
+    l.meta = MetaData(qtype = QDATE_LIST)
+    # 2000.01.04 0N (type 14h)
+
+
+Similarly, the series of ``float64`` is mapped to q float (double precision)
+vector::
+
+    l = pandas.Series([1, numpy.nan, 3])
+    # 1 0n 3 (type 9h)
+
+This can be overwritten to convert the list to integer vector::
+
+    l = pandas.Series([1, numpy.nan, 3])
+    l.meta = MetaData(qtype = QINT_LIST)
+    # 1 0N 3i (type 6h)
+
+
+Table columns
++++++++++++++
+
+Type hinting mechanism is useful for specifying the conversion rules for columns
+in the table. This can be used either to enforce the type conversions or
+provide information for ambiguous mappings.
+::
+
+    t = pandas.DataFrame(OrderedDict((('pos', pandas.Series(['A', 'B', 'C'])),
+                                      ('dates', pandas.Series(numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]'))))))
+
+    # pos dates
+    # ---------------------------------
+    # A   2001.01.01D00:00:00.000000000
+    # B   2000.05.01D00:00:00.000000000
+    # C
+    #
+    # meta:
+    # c    | t f a
+    # -----| -----
+    # pos  | c
+    # dates| p
+
+    t = pandas.DataFrame(OrderedDict((('pos', pandas.Series(['A', 'B', 'C'])),
+                                      ('dates', pandas.Series(numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]'))))))
+
+    t.meta = MetaData(pos = QSYMBOL_LIST, dates = QDATE_LIST)
+
+    # pos dates
+    # --------------
+    # A   2001.01.01
+    # B   2000.05.01
+    # C
+    #
+    # meta:
+    # c    | t f a
+    # -----| -----
+    # pos  | s
+    # dates| d
+
+
+Keyed tables
+++++++++++++
+
+By default, ``pandas.DataFrame`` is represented as a q table. During the
+serialization index information is discarded::
+
+    t = pandas.DataFrame(OrderedDict((('eid', pandas.Series(numpy.array([1001, 1002, 1003]))),
+                                      ('pos', pandas.Series(numpy.array(['d1', 'd2', 'd3']))),
+                                      ('dates', pandas.Series(numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]'))))))
+    t.reset_index(drop = True)
+    t.set_index(['eid'], inplace = True)
+    t.meta = MetaData(pos = QSYMBOL_LIST, dates = QDATE_LIST)
+
+    # pos dates
+    # --------------
+    # d1  2001.01.01
+    # d2  2000.05.01
+    # d3
+    #
+    # meta:
+    # c    | t f a
+    # -----| -----
+    # pos  | s
+    # dates| d
+
+
+In order to preserve the index data and represent ``pandas.DataFrame`` as a q
+keyed table, use type hinting mechanism to enforce the serialization rules::
+
+    t = pandas.DataFrame(OrderedDict((('eid', pandas.Series(numpy.array([1001, 1002, 1003]))),
+                                      ('pos', pandas.Series(numpy.array(['d1', 'd2', 'd3']))),
+                                      ('dates', pandas.Series(numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]'))))))
+    t.reset_index(drop = True)
+    t.set_index(['eid'], inplace = True)
+    t.meta = MetaData(pos = QSYMBOL_LIST, dates = QDATE_LIST, qtype = QKEYED_TABLE)
+
+    # eid | pos dates
+    # ----| --------------
+    # 1001| d1  2001.01.01
+    # 1002| d2  2000.05.01
+    # 1003| d3
+    #
+    # meta:
+    # c    | t f a
+    # -----| -----
+    # eid  | j
+    # pos  | s
+    # dates| d
+
+
 .. _pandas: http://pandas.pydata.org/
 
