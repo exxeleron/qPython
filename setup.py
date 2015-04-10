@@ -37,7 +37,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-setup(name = 'qPython',
+setup(name = 'exxeleron-qPython',
       version = '1.0.0',
       description = 'kdb+ interfacing library for Python',
       long_description=read('README.rst'),
@@ -69,6 +69,7 @@ setup(name = 'qPython',
           'Topic :: Scientific/Engineering',
           'Topic :: Software Development',
           ],
-      packages = ['qpython', 'samples'],
-      package_data = {'': ['LICENSE', 'CHANGELOG.txt', 'README.rst', 'requirements.txt']},
+      packages = ['qpython'],
+      package_data = {'qpython': ['fastutils.pyx']},
+      data_files = [('', ['LICENSE', 'CHANGELOG.txt', 'README.rst', 'requirements.txt'])]
      )

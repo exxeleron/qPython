@@ -12,6 +12,15 @@ qPython is a Python library providing support for interprocess communication bet
  
 For more details please refer to the `documentation`_.
 
+
+Installation
+------------
+
+To install qPython from PyPI:
+
+``$ pip install exxeleron-qpython``
+
+
 Building package
 ----------------
 
