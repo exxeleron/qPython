@@ -190,6 +190,7 @@ EXPRESSIONS = OrderedDict((
                    ('(`one;2 3;"456";(7;8 9))',                      [numpy.string_('one'), qlist(numpy.array([2, 3], dtype=numpy.int64), qtype=QLONG_LIST), '456', [numpy.int64(7), qlist(numpy.array([8, 9], dtype=numpy.int64), qtype=QLONG_LIST)]]),
                    
                    ('`jumps`over`a`lazy`dog',                        (numpy.array(['jumps', 'over', 'a', 'lazy', 'dog'], dtype=numpy.string_), 
+                                                                      numpy.array(['jumps', 'over', 'a', 'lazy', 'dog']), 
                                                                       qlist(numpy.array(['jumps', 'over', 'a', 'lazy', 'dog']), qtype = QSYMBOL_LIST),
                                                                       qlist(['jumps', 'over', 'a', 'lazy', 'dog'], qtype = QSYMBOL_LIST))),
                    ('`the`quick`brown`fox',                          numpy.array([numpy.string_('the'), numpy.string_('quick'), numpy.string_('brown'), numpy.string_('fox')], dtype=numpy.object)),
@@ -308,6 +309,9 @@ EXPRESSIONS = OrderedDict((
                                                                             [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
                                                                              qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)]),
                                                                       qtable(['pos', 'dates'],
+                                                                            [numpy.array(['d1', 'd2', 'd3']), 
+                                                                             numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]')]),
+                                                                      qtable(['pos', 'dates'],
                                                                             [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
                                                                              numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]')])
                                                                       )),
@@ -338,16 +342,13 @@ def init():
 def test_writing():
     w = qwriter.QWriter(None, 3)
     
-    for query, value in EXPRESSIONS.iteritems():
+    for query, variants in EXPRESSIONS.iteritems():
         sys.stdout.write( '%-75s' % query )
-        if isinstance(value, tuple):
-            for object in value:
-                sys.stdout.write( '.' )
-                serialized = binascii.hexlify(w.write(object, 1))[16:].lower()
-                assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
-        else:
+        variants = [variants] if not isinstance(variants, tuple) else variants
+            
+        for object in variants:
             sys.stdout.write( '.' )
-            serialized = binascii.hexlify(w.write(value, 1))[16:].lower()
+            serialized = binascii.hexlify(w.write(object, 1))[16:].lower()
             assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
         
         print('')

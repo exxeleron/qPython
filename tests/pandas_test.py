@@ -163,6 +163,17 @@ try:
                      ('("quick"; "brown"; "fox"; "jumps"; "over"; "a lazy"; "dog")',
                                                                      {'data': pandas.Series(['quick', 'brown', 'fox', 'jumps', 'over', 'a lazy', 'dog']),
                                                                       'meta': MetaData(qtype = QSTRING_LIST) }),
+                     ('`the`quick`brown`fox',                        ({'data': pandas.Series(numpy.array(['the', 'quick', 'brown', 'fox'])),
+                                                                       'meta': MetaData(qtype = QSYMBOL_LIST) },
+                                                                      {'data': pandas.Series(['the', 'quick', 'brown', 'fox']),
+                                                                       'meta': MetaData(qtype = QSYMBOL_LIST) },
+                                                                      pandas.Series(['the', 'quick', 'brown', 'fox'])
+                                                                      )),
+                     ('flip `name`iq!(`Dent`Beeblebrox`Prefect;98 42 126)',
+                                                                      pandas.DataFrame(OrderedDict((('name', pandas.Series(['Dent', 'Beeblebrox', 'Prefect'])),
+                                                                                                    ('iq', pandas.Series(numpy.array([98, 42, 126], dtype = numpy.int64))),
+                                                                                                     ))),
+                                                                      ),
                                        ))
 
     def arrays_equal(left, right):
@@ -203,7 +214,7 @@ try:
             for c in left:
                 if not arrays_equal(left[c], right[c]):
                     return False
-                
+
             return True
         elif type(left) == QFunction:
             return type(right) == QFunction
@@ -226,7 +237,7 @@ try:
                     break
 
                 BINARY[query] = binary
-        
+
 
     def test_reading_pandas():
         print('Deserialization (pandas)')
@@ -263,9 +274,9 @@ try:
 
     def test_writing_pandas():
         w = qwriter.QWriter(None, 3)
-        
+
         for query, value in PANDAS_EXPRESSIONS.iteritems():
-            sys.stdout.write( '%-75s' % query )
+            sys.stdout.write('%-75s' % query)
             if isinstance(value, dict):
                 data = value['data']
                 if 'index' in value:
@@ -275,25 +286,29 @@ try:
             else:
                 data = value
             serialized = binascii.hexlify(w.write(data, 1))[16:].lower()
-            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value,  BINARY[query].lower(), serialized)
-            sys.stdout.write( '.' )
-               
+            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value, BINARY[query].lower(), serialized)
+            sys.stdout.write('.')
+
             print('')
-            
-        for query, value in PANDAS_EXPRESSIONS_ALT.iteritems():
-            sys.stdout.write( '%-75s' % query )
-            if isinstance(value, dict):
-                data = value['data']
-                if 'index' in value:
-                    data.reset_index(drop = True)
-                    data = data.set_index(value['index'])
-                data.meta = value['meta']
-            else:
-                data = value
-            serialized = binascii.hexlify(w.write(data, 1))[16:].lower()
-            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value,  BINARY[query].lower(), serialized)
-            sys.stdout.write( '.' )
-            
+
+        for query, variants in PANDAS_EXPRESSIONS_ALT.iteritems():
+            sys.stdout.write('%-75s' % query)
+            variants = [variants] if not isinstance(variants, tuple) else variants
+
+            for value in variants:
+                if isinstance(value, dict):
+                    data = value['data']
+                    if 'index' in value:
+                        data.reset_index(drop = True)
+                        data = data.set_index(value['index'])
+                    data.meta = value['meta']
+                else:
+                    data = value
+                serialized = binascii.hexlify(w.write(data, 1))[16:].lower()
+                assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value, BINARY[query].lower(), serialized)
+
+                sys.stdout.write('.')
+
             print('')
 
 
