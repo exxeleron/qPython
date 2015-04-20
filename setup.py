@@ -37,7 +37,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-setup(name = 'exxeleron-qPython',
+setup(name = 'qPython',
       version = '1.0.0',
       description = 'kdb+ interfacing library for Python',
       long_description=read('README.rst'),

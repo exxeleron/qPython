@@ -18,7 +18,9 @@ Installation
 
 To install qPython from PyPI:
 
-``$ pip install exxeleron-qpython``
+``$ pip install qpython``
+
+**Please do not use old PyPI package name: exxeleron-qpython.**
 
 
 Building package
