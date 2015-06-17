@@ -48,4 +48,4 @@ class MetaData(object):
         return self.__dict__.copy()
 
     def union_dict(self, **kw):
-        return dict(self.as_dict().items() + kw.items())
+        return dict(list(self.as_dict().items()) + list(kw.items()))

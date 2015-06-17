@@ -14,12 +14,14 @@
 #  limitations under the License.
 #
 
-import cStringIO
 import struct
-import sys
+try:
+    from cStringIO import BytesIO
+except ImportError:
+    from io import BytesIO
 
-from qtype import *  # @UnusedWildImport
-from qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable, get_list_qtype
+from qpython.qtype import *  # @UnusedWildImport
+from qpython.qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable, get_list_qtype
 from qpython.qtemporal import QTemporal, to_raw_qtemporal, array_to_raw_qtemporal
 
 
@@ -52,11 +54,11 @@ class QWriter(object):
             # try to load optional pandas binding
             try:
                 from qpython._pandas import PandasQWriter
-                return super(QWriter, cls).__new__(PandasQWriter, args, kwargs)
+                return super(QWriter, cls).__new__(PandasQWriter)
             except ImportError:
-                return super(QWriter, cls).__new__(QWriter, args, kwargs)
+                return super(QWriter, cls).__new__(QWriter)
         else:
-            return super(QWriter, cls).__new__(cls, args, kwargs)
+            return super(QWriter, cls).__new__(cls)
 
 
     def __init__(self, stream, protocol_version):
@@ -75,10 +77,10 @@ class QWriter(object):
         :returns: if wraped stream is ``None`` serialized data, 
                   otherwise ``None`` 
         '''
-        self._buffer = cStringIO.StringIO()
+        self._buffer = BytesIO()
 
         # header and placeholder for message size
-        self._buffer.write('%s%s\0\0\0\0\0\0' % (ENDIANESS, chr(msg_type)))
+        self._buffer.write(('%s%s\0\0\0\0\0\0' % (ENDIANESS, chr(msg_type))).encode("latin-1"))
 
         self._write(data)
 
@@ -125,13 +127,13 @@ class QWriter(object):
         self._buffer.write(struct.pack('b', QERROR))
         if isinstance(data, Exception):
             msg = data.__class__.__name__
-            if data.message:
-                msg = data.message
+            if data.args:
+                msg = data.args[0]
         else:
             msg = data.__name__
 
-        self._buffer.write(msg)
-        self._buffer.write('\0')
+        self._buffer.write(msg.encode("latin-1"))
+        self._buffer.write(b'\0')
 
 
     def _write_atom(self, data, qtype):
@@ -150,13 +152,16 @@ class QWriter(object):
             self._write(element)
 
 
-    @serialize(str)
+    @serialize(str, bytes)
     def _write_string(self, data):
         if len(data) == 1:
             self._write_atom(ord(data), QCHAR)
         else:
             self._buffer.write(struct.pack('=bxi', QSTRING, len(data)))
-            self._buffer.write(data)
+            if isinstance(data, str):
+                self._buffer.write(data.encode("latin-1"))
+            else:
+                self._buffer.write(data)
 
 
     @serialize(numpy.string_)
@@ -164,7 +169,7 @@ class QWriter(object):
         self._buffer.write(struct.pack('=b', QSYMBOL))
         if data:
             self._buffer.write(data)
-        self._buffer.write('\0')
+        self._buffer.write(b'\0')
 
 
     @serialize(uuid.UUID)
@@ -207,7 +212,7 @@ class QWriter(object):
     @serialize(QLambda)
     def _write_lambda(self, data):
         self._buffer.write(struct.pack('=b', QLAMBDA))
-        self._buffer.write('\0')
+        self._buffer.write(b'\0')
         self._write_string(data.expression)
 
 
@@ -257,7 +262,9 @@ class QWriter(object):
 
             if qtype == QSYMBOL:
                 for symbol in data:
-                    self._buffer.write('%s\0' % (symbol or ''))
+                    if symbol:
+                        self._buffer.write(symbol)
+                    self._buffer.write(b'\0')
             elif qtype == QGUID:
                 if self._protocol_version < 3:
                     raise QWriterException('kdb+ protocol version violation: Guid not supported pre kdb+ v3.0')

@@ -16,6 +16,9 @@
 
 import pandas
 import struct
+import sys
+if sys.version > '3':
+    basestring = (str, bytes)
 
 from collections import OrderedDict
 
@@ -72,20 +75,25 @@ class PandasQReader(QReader):
 
             odict = OrderedDict()
             meta = MetaData(qtype = QTABLE)
-            for i in xrange(len(columns)):
+            for i in range(len(columns)):
+                column_name = columns[i] if isinstance(columns[i], str) else columns[i].decode("utf-8")
                 if isinstance(data[i], str):
                     # convert character list (represented as string) to numpy representation
-                    meta[columns[i]] = QSTRING
-                    odict[columns[i]] = pandas.Series(list(data[i]), dtype = numpy.str).replace(' ', numpy.nan)
+                    meta[column_name] = QSTRING
+                    odict[column_name] = pandas.Series(list(data[i]), dtype = numpy.str).replace(b' ', numpy.nan)
+                elif isinstance(data[i], bytes):
+                    # convert character list (represented as string) to numpy representation
+                    meta[column_name] = QSTRING
+                    odict[column_name] = pandas.Series(list(data[i].decode()), dtype = numpy.str).replace(b' ', numpy.nan)
                 elif isinstance(data[i], (list, tuple)):
-                    meta[columns[i]] = QGENERAL_LIST
+                    meta[column_name] = QGENERAL_LIST
                     tarray = numpy.ndarray(shape = len(data[i]), dtype = numpy.dtype('O'))
-                    for j in xrange(len(data[i])):
+                    for j in range(len(data[i])):
                         tarray[j] = data[i][j]
-                    odict[columns[i]] = tarray
+                    odict[column_name] = tarray
                 else:
-                    meta[columns[i]] = data[i].meta.qtype
-                    odict[columns[i]] = data[i]
+                    meta[column_name] = data[i].meta.qtype
+                    odict[column_name] = data[i]
 
             df = pandas.DataFrame(odict)
             df.meta = meta
@@ -117,7 +125,7 @@ class PandasQReader(QReader):
     def _read_general_list(self, qtype = QGENERAL_LIST, options = READER_CONFIGURATION):
         list = QReader._read_general_list(self, qtype, options)
         if options.pandas:
-            return [numpy.nan if isinstance(element, basestring) and element == ' ' else element for element in list]
+            return [numpy.nan if isinstance(element, basestring) and element == b' ' else element for element in list]
         else:
             return list
 
@@ -147,7 +155,7 @@ class PandasQWriter(QWriter):
         if qtype is None:
             # determinate type based on first element of the numpy array
             qtype = Q_TYPE.get(type(data[0]), QGENERAL_LIST)
-            
+
             if qtype == QSTRING:
                 # assume we have a generic list of strings -> force representation as symbol list
                 qtype = QSYMBOL

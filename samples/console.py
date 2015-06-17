@@ -17,6 +17,11 @@
 from qpython import qconnection
 from qpython.qtype import QException
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 
 if __name__ == '__main__':
     with qconnection.QConnection(host = 'localhost', port = 5000) as q:
@@ -25,7 +30,7 @@ if __name__ == '__main__':
 
         while True:
             try:
-                x = raw_input('Q)')
+                x = input('Q)')
             except EOFError:
                 print('')
                 break
@@ -37,6 +42,6 @@ if __name__ == '__main__':
                 result = q(x)
                 print(type(result))
                 print(result)
-            except QException, msg:
+            except QException as msg:
                 print('q error: \'%s' % msg)
 

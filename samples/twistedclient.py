@@ -45,7 +45,7 @@ class IPCProtocol(Protocol):
         if self.state == IPCProtocol.State.CONNECTED:
             try:
                 if not self._message:
-                    self._message = self._reader.read_header(source = data)
+                    self._message = self._reader.read_header(source=data)
                     self._buffer = ''
 
                 self._buffer += data
@@ -57,13 +57,13 @@ class IPCProtocol(Protocol):
                     if buffer_len > self._message.size:
                         self._buffer = self._buffer[self._message.size:]
                         buffer_len = len(self._buffer) if self._buffer else 0
-                        self._message = self._reader.read_header(source = self._buffer)
+                        self._message = self._reader.read_header(source=self._buffer)
                     else:
                         self._message = None
                         self._buffer = ''
                         buffer_len = 0
 
-                    self.factory.onMessage(self._reader.read(source = complete_message, numpy_temporals = True))
+                    self.factory.onMessage(self._reader.read(source=complete_message, numpy_temporals=True))
             except:
                 self.factory.onError(sys.exc_info())
                 self._message = None
@@ -87,8 +87,8 @@ class IPCProtocol(Protocol):
     def _init(self, data):
         self.state = IPCProtocol.State.CONNECTED
         self.protocol_version = min(struct.unpack('B', data)[0], 3)
-        self._writer = QWriter(stream = None, protocol_version = self.protocol_version)
-        self._reader = QReader(stream = None)
+        self._writer = QWriter(stream=None, protocol_version=self.protocol_version)
+        self._reader = QReader(stream=None)
 
         self.factory.clientReady(self)
 

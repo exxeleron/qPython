@@ -15,8 +15,8 @@
 #
 
 from qpython import MetaData
-from qtype import *  # @UnusedWildImport
-
+from qpython.qtype import *  # @UnusedWildImport
+from numpy import longlong
 
 _MILLIS_PER_DAY = 24 * 60 * 60 * 1000
 _MILLIS_PER_DAY_FLOAT = float(_MILLIS_PER_DAY)
@@ -345,7 +345,7 @@ def _to_qtimestamp(dt):
     if t_dt == numpy.int64:
         return dt
     elif t_dt == numpy.datetime64:
-        return (dt - _EPOCH_TIMESTAMP).astype(long) if not dt == _NUMPY_NULL[QTIMESTAMP] else _QTIMESTAMP_NULL
+        return (dt - _EPOCH_TIMESTAMP).astype(longlong) if not dt == _NUMPY_NULL[QTIMESTAMP] else _QTIMESTAMP_NULL
     else:
         raise ValueError('Cannot convert %s of type %s to q value.' % (dt, type(dt)))
 
@@ -364,7 +364,7 @@ def _to_qtimespan(dt):
     if t_dt == numpy.int64:
         return dt
     elif t_dt == numpy.timedelta64:
-        return dt.astype(long) if not dt == _NUMPY_NULL[QTIMESPAN] else _QTIMESTAMP_NULL
+        return dt.astype(longlong) if not dt == _NUMPY_NULL[QTIMESPAN] else _QTIMESTAMP_NULL
     else:
         raise ValueError('Cannot convert %s of type %s to q value.' % (dt, type(dt)))
 

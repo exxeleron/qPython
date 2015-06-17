@@ -1,18 +1,18 @@
-#
+# 
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-#
+# 
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#
+# 
 #    http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-#
+# 
 
 '''
 The `qpython.qtype` module defines number of utility function which help to work
@@ -81,14 +81,17 @@ QADVERB_FUNC_109       0x6d
 QADVERB_FUNC_110       0x6e
 QADVERB_FUNC_111       0x6f
 QPROJECTION            0x68
-QERROR                 -0x80  
+QERROR                 -0x80
 ==================     =============
 '''
 
 import numpy
 import re
 import uuid
-
+import sys
+from functools import reduce
+if sys.version > '3':
+    long = int
 
 # qtype constants:
 QNULL               =  0x65
@@ -114,7 +117,7 @@ QSTRING             =  0x0a
 QSTRING_LIST        =  0x00
 QSYMBOL             =  -0x0b
 QSYMBOL_LIST        =  0x0b
-                    
+
 QTIMESTAMP          =  -0x0c
 QTIMESTAMP_LIST     =  0x0c
 QMONTH              =  -0x0d
@@ -131,7 +134,7 @@ QSECOND             =  -0x12
 QSECOND_LIST        =  0x12
 QTIME               =  -0x13
 QTIME_LIST          =  0x13
-                    
+
 QDICTIONARY         =  0x63
 QKEYED_TABLE        =  0x63
 QTABLE              =  0x62
@@ -148,11 +151,11 @@ QADVERB_FUNC_110    =  0x6e
 QADVERB_FUNC_111    =  0x6f
 QPROJECTION         =  0x68
 
-QERROR              = -0x80  
+QERROR              = -0x80
 
 
 
-ATOM_SIZE = (0, 1, 16, 0, 1, 2, 4, 8, 4, 8, 1, 0, 8, 4, 4, 8, 8, 4, 4, 4)
+ATOM_SIZE = ( 0, 1, 16, 0, 1, 2, 4, 8, 4, 8, 1, 0, 8, 4, 4, 8, 8, 4, 4, 4 )
 
 
 
@@ -251,12 +254,12 @@ STRUCT_MAP = {
 
 
 # null definitions
-_QNULL1 = numpy.int8(-2 ** 7)
-_QNULL2 = numpy.int16(-2 ** 15)
-_QNULL4 = numpy.int32(-2 ** 31)
-_QNULL8 = numpy.int64(-2 ** 63)
-_QNAN32 = numpy.fromstring('\x00\x00\xc0\x7f', dtype = numpy.float32)[0]
-_QNAN64 = numpy.fromstring('\x00\x00\x00\x00\x00\x00\xf8\x7f', dtype = numpy.float64)[0]
+_QNULL1 = numpy.int8(-2**7)
+_QNULL2 = numpy.int16(-2**15)
+_QNULL4 = numpy.int32(-2**31)
+_QNULL8 = numpy.int64(-2**63)
+_QNAN32 = numpy.fromstring(b'\x00\x00\xc0\x7f', dtype=numpy.float32)[0]
+_QNAN64 = numpy.fromstring(b'\x00\x00\x00\x00\x00\x00\xf8\x7f', dtype=numpy.float64)[0]
 _QNULL_BOOL = numpy.bool_(False)
 _QNULL_SYM = numpy.string_('')
 _QNULL_GUID = uuid.UUID('00000000-0000-0000-0000-000000000000')
@@ -271,7 +274,7 @@ QNULLMAP = {
     QLONG:       ('0Nj',    _QNULL8,             lambda v: v == _QNULL8),
     QFLOAT:      ('0Ne',    _QNAN32,             lambda v: numpy.isnan(v)),
     QDOUBLE:     ('0n',     _QNAN64,             lambda v: numpy.isnan(v)),
-    QSTRING:     ('" "',    ' ',                 lambda v: v == ' '),
+    QSTRING:     ('" "',    b' ',                 lambda v: v == b' '),
     QSYMBOL:     ('`',      _QNULL_SYM,          lambda v: v == _QNULL_SYM),
     QMONTH:      ('0Nm',    _QNULL4,             lambda v: v == _QNULL4),
     QDATE:       ('0Nd',    _QNULL4,             lambda v: v == _QNULL4),
@@ -287,10 +290,10 @@ QNULLMAP = {
 
 def qnull(qtype):
     '''Retrieve null value for requested q type.
-    
+
     :Parameters:
      - `qtype` (`integer`) - qtype indicator
-     
+
     :returns: null value for specified q type
     '''
     return QNULLMAP[qtype][1]
@@ -299,10 +302,10 @@ def qnull(qtype):
 
 def is_null(value, qtype):
     '''Checks whether given value matches null value for a particular q type.
-    
+
     :Parameters:
      - `qtype` (`integer`) - qtype indicator
-    
+
     :returns: `boolean` - ``True`` if value is considered null for given type
               ``False`` otherwise
     '''
@@ -331,14 +334,14 @@ class QFunction(object):
 class QLambda(QFunction):
 
     '''Represents a q lambda expression.
-    
+
     .. note:: `expression` is trimmed and required to be valid q function 
               (``{..}``) or k function (``k){..}``).
-    
+
     :Parameters:
      - `expression` (`string`) - lambda expression
-     
-    :raises: `ValueError` 
+
+    :raises: `ValueError`
     '''
     def __init__(self, expression):
         QFunction.__init__(self, QLAMBDA)
@@ -369,7 +372,7 @@ class QLambda(QFunction):
 class QProjection(QFunction):
 
     '''Represents a q projection.
-    
+
     :Parameters:
      - `parameters` (`list`) - list of parameters for lambda expression
     '''
@@ -389,7 +392,7 @@ class QProjection(QFunction):
 
     def __eq__(self, other):
         return (not self.parameters and not other.parameters) or \
-                reduce(lambda v1, v2: v1 or v2, map(lambda v: v in self.parameters, other.parameters))
+                reduce(lambda v1,v2: v1 or v2, map(lambda v: v in self.parameters, other.parameters))
 
 
     def __ne__(self, other):
@@ -399,7 +402,7 @@ class QProjection(QFunction):
 
 class Mapper(object):
     '''Utility class for creating function execution map via decorators.
-    
+
     :Parameters:
      - `call_map` (`dictionary`) -  target execution map
     '''
