@@ -17,35 +17,35 @@ For example:
 
     >>> with qconnection.QConnection(host = 'localhost', port = 5000, pandas = True) as q:
     >>>     ds = q('(1i;0Ni;3i)', pandas = True)
-    >>>     print ds
+    >>>     print(ds)
     0     1
     1   NaN
     2     3
     dtype: float64
-    >>>     print ds.meta
+    >>>     print(ds.meta)
     metadata(qtype=6)
 
     >>>     df =  q('flip `name`iq`fullname!(`Dent`Beeblebrox`Prefect;98 42 126;("Arthur Dent"; "Zaphod Beeblebrox"; "Ford Prefect"))')
-    >>>     print df
+    >>>     print(df)
              name   iq           fullname
     0        Dent   98        Arthur Dent
     1  Beeblebrox   42  Zaphod Beeblebrox
     2     Prefect  126       Ford Prefect
-    >>>     print df.meta
+    >>>     print(df.meta)
     metadata(iq=7, fullname=0, qtype=98, name=11)
-    >>>     print q('type', df)
+    >>>     print(q('type', df))
     98
 
     >>>     df =  q('([eid:1001 0N 1003;sym:`foo`bar`] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))')
-    >>>     print df
+    >>>     print(df)
              pos      dates
     eid  sym
     1001 foo  d1 2001-01-01
     NaN  bar  d2 2000-05-01
     1003      d3        NaT
-    >>>     print df.meta
+    >>>     print(df.meta)
     metadata(dates=14, qtype=99, eid=7, sym=11, pos=11)
-    >>>     print q('type', df)
+    >>>     print(q('type', df))
     99
 
 

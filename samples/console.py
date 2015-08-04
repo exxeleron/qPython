@@ -46,4 +46,3 @@ if __name__ == '__main__':
                 print(result)
             except QException as msg:
                 print('q error: \'%s' % msg)
-

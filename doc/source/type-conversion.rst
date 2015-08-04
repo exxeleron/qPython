@@ -183,12 +183,12 @@ for ``month``\s etc.) and provides accessors which allow to convert raw data to
 ::
 
     >>> v = q.sync("2001.01.01 2000.05.01 0Nd", numpy_temporals = False)
-    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QTemporalList'> dtype: int32 qtype: -14: [2001-01-01 [metadata(qtype=-14)] 2000-05-01 [metadata(qtype=-14)]
      NaT [metadata(qtype=-14)]]
     
     >>> v = q.sync("2000.01.04D05:36:57.600 0Np", numpy_temporals = False)
-    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QTemporalList'> dtype: int64 qtype: -12: [2000-01-04T05:36:57.600000000+0100 [metadata(qtype=-12)]
      NaT [metadata(qtype=-12)]]
 
@@ -203,11 +203,11 @@ via :class:`~.qconnection.QConnection` constructor or as parameter to functions:
 ::
     
     >>> v = q.sync("2001.01.01 2000.05.01 0Nd", numpy_temporals = True)
-    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QList'> dtype: datetime64[D] qtype: -14: ['2001-01-01' '2000-05-01' 'NaT']
     
     >>> v = q.sync("2000.01.04D05:36:57.600 0Np", numpy_temporals = True)
-    >>> print '%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v)
+    >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QList'> dtype: datetime64[ns] qtype: -12: ['2000-01-04T05:36:57.600000000+0100' 'NaT']
     
 

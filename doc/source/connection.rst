@@ -26,8 +26,8 @@ can be used with a ``with`` statement:
 ::
 
   with qconnection.QConnection(host = 'localhost', port = 5000) as q:
-      print q
-      print q('{`int$ til x}', 10)
+      print(q)
+      print(q('{`int$ til x}', 10))
 
 
 Q parser configuration

@@ -35,26 +35,26 @@ Synchronous queries
 
 Executes a q expression:
         
-    >>> print q.sync('til 10')
+    >>> print(q.sync('til 10'))
     [0 1 2 3 4 5 6 7 8 9]
 
 Executes an anonymous q function with a single parameter:
 
-    >>> print q.sync('{til x}', 10)
+    >>> print(q.sync('{til x}', 10))
     [0 1 2 3 4 5 6 7 8 9]
     
 Executes an anonymous q function with two parameters:
 
-    >>> print q.sync('{y + til x}', 10, 1)
+    >>> print(q.sync('{y + til x}', 10, 1))
     [ 1  2  3  4  5  6  7  8  9 10]
-    >>> print q.sync('{y + til x}', *[10, 1])
+    >>> print(q.sync('{y + til x}', *[10, 1]))
     [ 1  2  3  4  5  6  7  8  9 10]
 
 The :class:`.QConnection` class implements the 
 :func:`~qpython.qconnection.QConnection.__call__` method. This allows 
 :class:`.QConnection` instance to be called as a function:
         
-    >>> print q('{y + til x}', 10, 1)
+    >>> print(q('{y + til x}', 10, 1))
     [ 1  2  3  4  5  6  7  8  9 10]
 
     
@@ -84,25 +84,25 @@ For example:
 - Retrieves query result along with meta-information:
     
 >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
->>> print q.receive(data_only = False, raw = False)
+>>> print(q.receive(data_only = False, raw = False))
 QMessage: message type: 2, data size: 13, is_compressed: False, data: 10
 
 - Retrieves parsed query result:
 
 >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
->>> print q.receive(data_only = True, raw = False)
+>>> print(q.receive(data_only = True, raw = False))
 10
 
->>> q.sync('asynchMult:{[a;b] res:a*b; (neg .z.w)(res) }');
+>>> q.sync('asynchMult:{[a;b] res:a*b; (neg .z.w)(res) }')
 >>> q.async('asynchMult', 2, 3)
->>> print q.receive()
+>>> print(q.receive())
 6
 
 - Retrieves not-parsed (raw) query result:
 
 >>> from binascii import hexlify
 >>> q.query(qconnection.MessageType.SYNC,'{x}', 10)
->>> print hexlify(q.receive(data_only = True, raw = True))
+>>> print(hexlify(q.receive(data_only = True, raw = True)))
 fa0a000000
 
 
@@ -119,17 +119,18 @@ Both methods accepts the `options` keywords arguments::
     >>> query = "{[x] 0Nd, `date$til x}"
     
     >>> # retrieve function call as raw byte buffer
-    >>> print binascii.hexlify(q(query, 5, raw = True))
+    >>> from binascii import hexlify
+    >>> print(binascii.hexlify(q(query, 5, raw = True)))
     0e0006000000000000800000000001000000020000000300000004000000
 
     >>> # perform a synchronous call and parse dates vector to numpy array
-    >>> print q.sync(query, 5, numpy_temporals = True)
+    >>> print(q.sync(query, 5, numpy_temporals = True))
     ['NaT' '2000-01-01' '2000-01-02' '2000-01-03' '2000-01-04' '2000-01-05']
 
     >>> # perform a synchronous call
     >>> q.query(qconnection.MessageType.SYNC, query, 3)
     >>> # retrieve query result and represent dates vector as raw data wrapped in QTemporalList
-    >>> print q.receive(numpy_temporals = False)
+    >>> print(q.receive(numpy_temporals = False))
     [NaT [metadata(qtype=-14)] 2000-01-01 [metadata(qtype=-14)]
      2000-01-02 [metadata(qtype=-14)] 2000-01-03 [metadata(qtype=-14)]]
     
