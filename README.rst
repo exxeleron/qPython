@@ -8,7 +8,7 @@ qPython is a Python library providing support for interprocess communication bet
 - Support for kdb+ protocol and types: v3.0, v2.6, v<=2.5
 - Uncompression of the IPC data stream
 - Internal representation of data via numpy arrays (lists, complex types) and numpy data types (atoms)
-- Supported on Python 2.7/3.4 and numpy 1.8
+- Supported on Python 2.7/3.3/3.4 and numpy 1.8
  
 For more details please refer to the `documentation`_.
 

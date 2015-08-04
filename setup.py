@@ -38,7 +38,7 @@ def read(fname):
 
 
 setup(name = 'qPython',
-      version = '1.1 beta',
+      version = '1.1.0b1',
       description = 'kdb+ interfacing library for Python',
       long_description=read('README.rst'),
 
