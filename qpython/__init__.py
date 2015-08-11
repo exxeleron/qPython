@@ -17,7 +17,15 @@
 __all__ = ['qconnection', 'qtype', 'qtemporal', 'qcollection']
 
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
+
+try:
+    from qpython.fastutils import uncompress
+except:
+    __is_cython_enabled__ = False
+else:
+    __is_cython_enabled__ = True
+
 
 class MetaData(object):
     '''Utility class for enriching data structures with meta data, e.g. qtype hint.'''
