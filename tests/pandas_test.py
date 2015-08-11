@@ -159,6 +159,11 @@ try:
                                                                                                ),
                                                                       'meta': MetaData(**{'qtype': QKEYED_TABLE, 'pos': QSYMBOL_LIST, 'dates': QDATE_LIST, 'eid': QLONG_LIST}),
                                                                       'index': ['eid'] }),
+                     (b'([k: 1 2 3] v: `a`b`c)',
+                                                                     {'data': pandas.DataFrame({'k':numpy.array([1, 2, 3], dtype = numpy.int64),'v':numpy.array(['a', 'b', 'c'], dtype = numpy.string_)}),
+                                                                      'meta': MetaData(**{'qtype': QKEYED_TABLE}),
+                                                                      'index': ['k'],
+                                                                      'compare_meta': False }),
                                     ))
 
 
@@ -253,7 +258,8 @@ try:
                         result = result.reset_index()
                         result.meta = meta
 
-                    assert value['meta'].as_dict() == result.meta.as_dict(), 'deserialization failed qtype: %s, expected: %s actual: %s' % (query, value['meta'], result.meta)
+                    if not 'compare_meta' in value or value['compare_meta']:
+                        assert value['meta'].as_dict() == result.meta.as_dict(), 'deserialization failed qtype: %s, expected: %s actual: %s' % (query, value['meta'], result.meta)
                     assert compare(value['data'], result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value['data'], result)
                 else:
                     assert compare(value, result), 'deserialization failed: %s, expected: %s actual: %s' % (query, value, result)

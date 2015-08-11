@@ -199,6 +199,7 @@ Q_TYPE = {
     float            : QDOUBLE,
     numpy.float64    : QDOUBLE,
     str              : QSTRING,
+    bytes            : QSTRING,
     numpy.string_    : QSYMBOL,
     uuid.UUID        : QGUID,
     }

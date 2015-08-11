@@ -17,7 +17,7 @@
 __all__ = ['qconnection', 'qtype', 'qtemporal', 'qcollection']
 
 
-__version__ = '1.1.0b1'
+__version__ = '1.1.0b2'
 
 
 try:

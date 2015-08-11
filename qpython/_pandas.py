@@ -154,7 +154,7 @@ class PandasQWriter(QWriter):
 
         if qtype is None:
             # determinate type based on first element of the numpy array
-            qtype = Q_TYPE.get(type(data[0]), QGENERAL_LIST)
+            qtype = Q_TYPE.get(type(data.iloc[0]), QGENERAL_LIST)
 
             if qtype == QSTRING:
                 # assume we have a generic list of strings -> force representation as symbol list
