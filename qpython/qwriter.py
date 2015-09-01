@@ -152,8 +152,16 @@ class QWriter(object):
             self._write(element)
 
 
-    @serialize(str, bytes)
+    @serialize(str)
     def _write_string(self, data):
+        self._buffer.write(struct.pack('=bxi', QSTRING, len(data)))
+        if isinstance(data, str):
+            self._buffer.write(data.encode("latin-1"))
+        else:
+            self._buffer.write(data)
+
+    @serialize(bytes)
+    def _write_bytes(self, data):
         if len(data) == 1:
             self._write_atom(ord(data), QCHAR)
         else:

@@ -252,7 +252,7 @@ class QReader(object):
     def _read_string(self, qtype = QSTRING, options = READER_CONFIGURATION):
         self._buffer.skip()  # ignore attributes
         length = self._buffer.get_int()
-        return self._buffer.raw(length) if length > 0 else b''
+        return self._buffer.raw(length).decode('latin-1') if length > 0 else ''
 
 
     @parse(QSYMBOL)
