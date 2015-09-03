@@ -17,14 +17,15 @@
 import socket
 import struct
 
-from qpython import MetaData
+from qpython import MetaData, CONVERSION_OPTIONS
 from qpython.qtype import QException
-from qpython.qreader import QReader, QReaderException, READER_CONFIGURATION
+from qpython.qreader import QReader, QReaderException
 from qpython.qwriter import QWriter, QWriterException
 
 
+
 class QConnectionException(Exception):
-    '''Raised when a connection to the q service cannot be estabilished.'''
+    '''Raised when a connection to the q service cannot be established.'''
     pass
 
 
@@ -69,6 +70,8 @@ class QConnection(object):
        :class:`.QTemporal`) instances, otherwise are represented as 
        `numpy datetime64`/`timedelta64` arrays and atoms,
        **Default**: ``False``
+     - `single_char_strings` (`boolean`) - if ``True`` single char Python 
+       strings are encoded as q strings instead of chars, **Default**: ``False``
     '''
 
     def __init__(self, host, port, username = None, password = None, timeout = None, **options):
@@ -82,7 +85,7 @@ class QConnection(object):
 
         self.timeout = timeout
 
-        self._options = MetaData(**READER_CONFIGURATION.union_dict(**options))
+        self._options = MetaData(**CONVERSION_OPTIONS.union_dict(**options))
 
 
     def __enter__(self):
@@ -177,7 +180,7 @@ class QConnection(object):
         return '%s@:%s:%s' % (self.username, self.host, self.port) if self.username else ':%s:%s' % (self.host, self.port)
 
 
-    def query(self, msg_type, query, *parameters):
+    def query(self, msg_type, query, *parameters, **options):
         '''Performs a query against a q service.
         
         In typical use case, `query` is the name of the function to call and 
@@ -197,6 +200,10 @@ class QConnection(object):
            type of the query to be executed
          - `query` (`string`) - query to be executed
          - `parameters` (`list` or `None`) - parameters for the query
+        :Options:
+         - `single_char_strings` (`boolean`) - if ``True`` single char Python 
+           strings are encoded as q strings instead of chars, 
+           **Default**: ``False``
         
         :raises: :class:`.QConnectionException`, :class:`.QWriterException`
         '''
@@ -207,9 +214,9 @@ class QConnection(object):
             raise QWriterException('Too many parameters.')
 
         if not parameters or len(parameters) == 0:
-            self._writer.write(query, msg_type)
+            self._writer.write(query, msg_type, **self._options.union_dict(**options))
         else:
-            self._writer.write([query] + list(parameters), msg_type)
+            self._writer.write([query] + list(parameters), msg_type, **self._options.union_dict(**options))
 
 
     def sync(self, query, *parameters, **options):
@@ -257,13 +264,16 @@ class QConnection(object):
            :class:`.QTemporal`) instances, otherwise are represented as 
            `numpy datetime64`/`timedelta64` arrays and atoms,
            **Default**: ``False``
+         - `single_char_strings` (`boolean`) - if ``True`` single char Python 
+           strings are encoded as q strings instead of chars, 
+           **Default**: ``False``
 
         :returns: query result parsed to Python data structures
         
         :raises: :class:`.QConnectionException`, :class:`.QWriterException`, 
                  :class:`.QReaderException`
         '''
-        self.query(MessageType.SYNC, query, *parameters)
+        self.query(MessageType.SYNC, query, *parameters, **options)
         response = self.receive(data_only = False, **options)
 
         if response.type == MessageType.RESPONSE:
@@ -273,7 +283,7 @@ class QConnection(object):
             raise QReaderException('Received message of type: %s where response was expected')
 
 
-    def async(self, query, *parameters):
+    def async(self, query, *parameters, **options):
         '''Performs an asynchronous query and returns **without** retrieving of 
         the response.
         
@@ -292,10 +302,14 @@ class QConnection(object):
         :Parameters:
          - `query` (`string`) - query to be executed
          - `parameters` (`list` or `None`) - parameters for the query
+        :Options: 
+         - `single_char_strings` (`boolean`) - if ``True`` single char Python 
+           strings are encoded as q strings instead of chars, 
+           **Default**: ``False``
         
         :raises: :class:`.QConnectionException`, :class:`.QWriterException`
         '''
-        self.query(MessageType.ASYNC, query, *parameters)
+        self.query(MessageType.ASYNC, query, *parameters, **options)
 
 
     def receive(self, data_only = True, **options):

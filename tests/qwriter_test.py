@@ -346,14 +346,27 @@ def test_writing():
         sys.stdout.write( '%-75s' % query )
         variants = [variants] if not isinstance(variants, tuple) else variants
             
-        for object in variants:
+        for obj in variants:
             sys.stdout.write( '.' )
-            serialized = binascii.hexlify(w.write(object, 1))[16:].lower()
+            serialized = binascii.hexlify(w.write(obj, 1))[16:].lower()
             assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
         
         print('')
+
         
+
+def test_write_single_char_string():
+    w = qwriter.QWriter(None, 3)
+    
+    for obj in (['one', 'two', '3'], qlist(['one', 'two', '3'], qtype = QSTRING_LIST)):
+        single_char_strings = False
+        for query in ('("one"; "two"; "3")', '("one"; "two"; enlist "3")'):
+            serialized = binascii.hexlify(w.write(obj, 1, single_char_strings = single_char_strings ))[16:].lower()
+            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
+            single_char_strings = not single_char_strings
+
 
 
 init()
 test_writing()
+test_write_single_char_string()

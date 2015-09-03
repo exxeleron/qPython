@@ -22,14 +22,14 @@ to this table:
 ===============  ============ =====================================
  q  type          q num type   Python type        
 ===============  ============ =====================================
- ``bool``         -1           ``numpy.bool_``        
+ ``bool``         -1           ``numpy.bool_``
  ``guid``         -2           ``UUID``
- ``byte``         -4           ``numpy.byte``         
- ``short``        -5           ``numpy.int16``        
- ``integer``      -6           ``numpy.int32``        
- ``long``         -7           ``numpy.int64``        
- ``real``         -8           ``numpy.float32``      
- ``float``        -9           ``numpy.float64``      
+ ``byte``         -4           ``numpy.byte``
+ ``short``        -5           ``numpy.int16``
+ ``integer``      -6           ``numpy.int32``
+ ``long``         -7           ``numpy.int64``
+ ``real``         -8           ``numpy.float32``
+ ``float``        -9           ``numpy.float64``
  ``character``    -10          single element ``str``
  ``timestamp``    -12          ``QTemporal  numpy.datetime64   ns``
  ``month``        -13          ``QTemporal  numpy.datetime64   M``
@@ -54,30 +54,34 @@ described in the table:
 =====================================  ================  ============
  Python type                            q type            q num type 
 =====================================  ================  ============
- ``bool``                               ``bool``          -1         
- ---                                    ``byte``          -4         
- ---                                    ``short``         -5         
- ``int``                                ``int``           -6         
- ``long``                               ``long``          -7         
- ---                                    ``real``          -8         
- ``double``                             ``float``         -9         
- ``numpy.bool``                         ``bool``          -1         
- ``numpy.byte``                         ``byte``          -4         
- ``numpy.int16``                        ``short``         -5         
- ``numpy.int32``                        ``int``           -6         
- ``numpy.int64``                        ``long``          -7         
- ``numpy.float32``                      ``real``          -8         
- ``numpy.float64``                      ``float``         -9         
- single element ``str``                 ``character``     -10        
- ``QTemporal  numpy.datetime64   ns``   ``timestamp``     -12                
- ``QTemporal  numpy.datetime64   M``    ``month``         -13                
- ``QTemporal  numpy.datetime64   D``    ``date``          -14              
- ``QTemporal  numpy.datetime64   ms``   ``datetime``      -15              
- ``QTemporal  numpy.timedelta64  ns``   ``timespan``      -16              
- ``QTemporal  numpy.timedelta64  m``    ``minute``        -17              
- ``QTemporal  numpy.timedelta64  s``    ``second``        -18              
- ``QTemporal  numpy.timedelta64  ms``   ``time``          -19              
+ ``bool``                               ``bool``          -1
+ ---                                    ``byte``          -4
+ ---                                    ``short``         -5
+ ``int``                                ``int``           -6
+ ``long``                               ``long``          -7
+ ---                                    ``real``          -8
+ ``double``                             ``float``         -9
+ ``numpy.bool``                         ``bool``          -1
+ ``numpy.byte``                         ``byte``          -4
+ ``numpy.int16``                        ``short``         -5
+ ``numpy.int32``                        ``int``           -6
+ ``numpy.int64``                        ``long``          -7
+ ``numpy.float32``                      ``real``          -8
+ ``numpy.float64``                      ``float``         -9
+ single element ``str``                 ``character``     -10
+ ``QTemporal  numpy.datetime64   ns``   ``timestamp``     -12
+ ``QTemporal  numpy.datetime64   M``    ``month``         -13
+ ``QTemporal  numpy.datetime64   D``    ``date``          -14
+ ``QTemporal  numpy.datetime64   ms``   ``datetime``      -15
+ ``QTemporal  numpy.timedelta64  ns``   ``timespan``      -16
+ ``QTemporal  numpy.timedelta64  m``    ``minute``        -17
+ ``QTemporal  numpy.timedelta64  s``    ``second``        -18
+ ``QTemporal  numpy.timedelta64  ms``   ``time``          -19
 =====================================  ================  ============
+
+.. note:: By default, single element strings are serialized as q characters. 
+          This setting can be modified (`single_char_strings = True`) and 
+          and single element strings are represented as q strings.
 
 
 String and symbols
@@ -97,6 +101,20 @@ apply:
     # "quick brown fox jumps over a lazy dog"
     'quick brown fox jumps over a lazy dog'
 
+
+.. note:: By default, single element strings are serialized as q characters. 
+          This setting can be modified (`single_char_strings = True`) and 
+          and single element strings are represented as q strings.
+
+::
+          
+    >>> # serialize single element strings as q characters 
+    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = False))
+    [ 10,  10, -10]
+    
+    >>> # serialize single element strings as q strings 
+    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = True))
+    [10, 10, 10]
 
 
 Lists
@@ -350,22 +368,22 @@ Complete null mapping between q and Python is represented in the table:
 ============== ============== =======================
  ``bool``       ``0b``          ``_QNULL_BOOL``
  ``guid``       ``0Ng``         ``_QNULL_GUID``
- ``byte``       ``0x00``        ``_QNULL1``     
- ``short``      ``0Nh``         ``_QNULL2``     
- ``int``        ``0N``          ``_QNULL4``     
- ``long``       ``0Nj``         ``_QNULL8``     
- ``real``       ``0Ne``         ``_QNAN32``     
- ``float``      ``0n``          ``_QNAN64``     
- ``string``     ``" "``         ``' '``         
+ ``byte``       ``0x00``        ``_QNULL1``
+ ``short``      ``0Nh``         ``_QNULL2``
+ ``int``        ``0N``          ``_QNULL4``
+ ``long``       ``0Nj``         ``_QNULL8``
+ ``real``       ``0Ne``         ``_QNAN32``
+ ``float``      ``0n``          ``_QNAN64``
+ ``string``     ``" "``         ``' '``
  ``symbol``     \`              ``_QNULL_SYM``
- ``timestamp``  ``0Np``         ``_QNULL8``                
- ``month``      ``0Nm``         ``_QNULL4``               
- ``date``       ``0Nd``         ``_QNULL4``                  
- ``datetime``   ``0Nz``         ``_QNAN64``                  
- ``timespan``   ``0Nn``         ``_QNULL8``                  
- ``minute``     ``0Nu``         ``_QNULL4``                  
- ``second``     ``0Nv``         ``_QNULL4``                  
- ``time``       ``0Nt``         ``_QNULL4``                  
+ ``timestamp``  ``0Np``         ``_QNULL8``
+ ``month``      ``0Nm``         ``_QNULL4``
+ ``date``       ``0Nd``         ``_QNULL4``
+ ``datetime``   ``0Nz``         ``_QNAN64``
+ ``timespan``   ``0Nn``         ``_QNULL8``
+ ``minute``     ``0Nu``         ``_QNULL4``
+ ``second``     ``0Nv``         ``_QNULL4``
+ ``time``       ``0Nt``         ``_QNULL4``
 ============== ============== =======================
 
 The :py:mod:`qtype` provides two utility functions to work with null values:

@@ -18,8 +18,9 @@ import cStringIO
 import struct
 import sys
 
-from qtype import *  # @UnusedWildImport
-from qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable, get_list_qtype
+from qpython import MetaData, CONVERSION_OPTIONS
+from qpython.qtype import *  # @UnusedWildImport
+from qpython.qcollection import qlist, QList, QTemporalList, QDictionary, QTable, QKeyedTable, get_list_qtype
 from qpython.qtemporal import QTemporal, to_raw_qtemporal, array_to_raw_qtemporal
 
 
@@ -64,17 +65,23 @@ class QWriter(object):
         self._protocol_version = protocol_version
 
 
-    def write(self, data, msg_type):
+    def write(self, data, msg_type, **options):
         '''Serializes and pushes single data object to a wrapped stream.
         
         :Parameters:
          - `data` - data to be serialized
          - `msg_type` (one of the constants defined in :class:`.MessageType`) -
            type of the message
+        :Options:
+         - `single_char_strings` (`boolean`) - if ``True`` single char Python 
+           strings are encoded as q strings instead of chars, 
+           **Default**: ``False``
         
         :returns: if wraped stream is ``None`` serialized data, 
                   otherwise ``None`` 
         '''
+        self._options = MetaData(**CONVERSION_OPTIONS.union_dict(**options))
+        
         self._buffer = cStringIO.StringIO()
 
         # header and placeholder for message size
@@ -152,7 +159,7 @@ class QWriter(object):
 
     @serialize(str)
     def _write_string(self, data):
-        if len(data) == 1:
+        if not self._options.single_char_strings and len(data) == 1:
             self._write_atom(ord(data), QCHAR)
         else:
             self._buffer.write(struct.pack('=bxi', QSTRING, len(data)))
