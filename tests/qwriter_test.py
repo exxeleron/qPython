@@ -348,9 +348,9 @@ def test_writing():
     for query, value in iter(EXPRESSIONS.items()):
         sys.stdout.write( '%-75s' % query )
         if isinstance(value, tuple):
-            for object in value:
+            for obj in value:
                 sys.stdout.write( '.' )
-                serialized = binascii.hexlify(w.write(object, 1))[16:].lower()
+                serialized = binascii.hexlify(w.write(obj, 1))[16:].lower()
                 assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
         else:
             sys.stdout.write( '.' )
@@ -359,7 +359,17 @@ def test_writing():
 
         print('')
 
+def test_write_single_char_string():
+    w = qwriter.QWriter(None, 3)
+    
+    for obj in (['one', 'two', '3'], qlist(['one', 'two', '3'], qtype = QSTRING_LIST)):
+        single_char_strings = False
+        for query in (b'("one"; "two"; "3")', b'("one"; "two"; enlist "3")'):
+            serialized = binascii.hexlify(w.write(obj, 1, single_char_strings = single_char_strings ))[16:].lower()
+            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
+            single_char_strings = not single_char_strings
 
 
 init()
 test_writing()
+test_write_single_char_string()

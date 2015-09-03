@@ -15,6 +15,7 @@
 #
 
 from distutils.core import setup
+from qpython import __version__
 
 import numpy
 import os
@@ -38,7 +39,7 @@ def read(fname):
 
 
 setup(name = 'qPython',
-      version = '1.1.0b2',
+      version = __version__,
       description = 'kdb+ interfacing library for Python',
       long_description=read('README.rst'),
 

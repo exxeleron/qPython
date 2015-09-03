@@ -17,7 +17,8 @@
 __all__ = ['qconnection', 'qtype', 'qtemporal', 'qcollection']
 
 
-__version__ = '1.1.0b2'
+__version__ = '1.1.0b3'
+
 
 
 try:
@@ -58,3 +59,11 @@ class MetaData(object):
 
     def union_dict(self, **kw):
         return dict(list(self.as_dict().items()) + list(kw.items()))
+
+
+
+CONVERSION_OPTIONS = MetaData(raw = False,
+                              numpy_temporals = False,
+                              pandas = False,
+                              single_char_strings = False
+                             )

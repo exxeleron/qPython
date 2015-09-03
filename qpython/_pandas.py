@@ -23,7 +23,7 @@ if sys.version > '3':
 from collections import OrderedDict
 
 from qpython import MetaData
-from qpython.qreader import QReader, READER_CONFIGURATION, QReaderException
+from qpython.qreader import QReader, QReaderException
 from qpython.qcollection import QDictionary, qlist
 from qpython.qwriter import QWriter, QWriterException
 from qpython.qtype import *
@@ -35,10 +35,10 @@ class PandasQReader(QReader):
     parse = Mapper(QReader._reader_map)
 
     @parse(QDICTIONARY)
-    def _read_dictionary(self, qtype = QDICTIONARY, options = READER_CONFIGURATION):
-        if options.pandas:
-            keys = self._read_object(options = options)
-            values = self._read_object(options = options)
+    def _read_dictionary(self, qtype = QDICTIONARY):
+        if self._options.pandas:
+            keys = self._read_object()
+            values = self._read_object()
 
             if isinstance(keys, pandas.DataFrame):
                 if not isinstance(values, pandas.DataFrame):
@@ -61,17 +61,17 @@ class PandasQReader(QReader):
                 values = values if not isinstance(values, pandas.Series) else values.as_matrix()
                 return QDictionary(keys, values)
         else:
-            return QReader._read_dictionary(self, qtype = qtype, options = options)
+            return QReader._read_dictionary(self, qtype = qtype)
 
 
     @parse(QTABLE)
-    def _read_table(self, qtype = QTABLE, options = READER_CONFIGURATION):
-        if options.pandas:
+    def _read_table(self, qtype = QTABLE):
+        if self._options.pandas:
             self._buffer.skip()  # ignore attributes
             self._buffer.skip()  # ignore dict type stamp
 
-            columns = self._read_object(options = options)
-            data = self._read_object(options = options)
+            columns = self._read_object()
+            data = self._read_object()
 
             odict = OrderedDict()
             meta = MetaData(qtype = QTABLE)
@@ -99,16 +99,16 @@ class PandasQReader(QReader):
             df.meta = meta
             return df
         else:
-            return QReader._read_table(self, qtype = qtype, options = options)
+            return QReader._read_table(self, qtype = qtype)
 
 
-    def _read_list(self, qtype, options):
-        if options.pandas:
-            options.numpy_temporals = True
+    def _read_list(self, qtype):
+        if self._options.pandas:
+            self._options.numpy_temporals = True
 
-        list = QReader._read_list(self, qtype = qtype, options = options)
+        list = QReader._read_list(self, qtype = qtype)
 
-        if options.pandas:
+        if self._options.pandas:
             if -abs(qtype) not in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN, QSYMBOL]:
                 null = QNULLMAP[-abs(qtype)][1]
                 ps = pandas.Series(data = list).replace(null, numpy.NaN)
@@ -122,9 +122,9 @@ class PandasQReader(QReader):
 
 
     @parse(QGENERAL_LIST)
-    def _read_general_list(self, qtype = QGENERAL_LIST, options = READER_CONFIGURATION):
-        list = QReader._read_general_list(self, qtype, options)
-        if options.pandas:
+    def _read_general_list(self, qtype = QGENERAL_LIST):
+        list = QReader._read_general_list(self, qtype)
+        if self._options.pandas:
             return [numpy.nan if isinstance(element, basestring) and element == b' ' else element for element in list]
         else:
             return list

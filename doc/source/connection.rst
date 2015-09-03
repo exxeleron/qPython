@@ -30,8 +30,8 @@ can be used with a ``with`` statement:
       print(q('{`int$ til x}', 10))
 
 
-Q parser configuration
-**********************
+Types conversion configuration
+******************************
 
 Connection can be preconfigured to parse IPC messages according to a specified
 settings, e.g.: temporal vectors can be represented as raw vectors or converted
@@ -45,6 +45,7 @@ to numpy `datetime64`/`timedelta64` representation.
   q = qconnection.QConnection(host = 'localhost', port = 5000, numpy_temporals = True) 
 
 
-Parsing options can be also overwritten while executing synchronous query 
-(:meth:`~qpython.qconnection.QConnection.sync`) or retrieving data from q
+Conversion options can be also overwritten while executing 
+synchronous/asynchronous queries (:meth:`~qpython.qconnection.QConnection.sync`,
+:meth:`~qpython.qconnection.QConnection.async`) or retrieving data from q
 (:meth:`~qpython.qconnection.QConnection.receive`).

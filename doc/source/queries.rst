@@ -106,15 +106,16 @@ QMessage: message type: 2, data size: 13, is_compressed: False, data: 10
 fa0a000000
 
 
-Q parser configuration
-**********************
+Type conversions configuration
+******************************
 
-Parsing options can be overwritten while:
+Type conversion options can be overwritten while:
 
 - executing synchronous query: :meth:`~qpython.qconnection.QConnection.sync`
+- executing asynchronous query: :meth:`~qpython.qconnection.QConnection.async`
 - retrieving data from q: :meth:`~qpython.qconnection.QConnection.receive`
 
-Both methods accepts the `options` keywords arguments::
+These methods accepts the `options` keywords arguments::
 
     >>> query = "{[x] 0Nd, `date$til x}"
     
@@ -134,4 +135,10 @@ Both methods accepts the `options` keywords arguments::
     [NaT [metadata(qtype=-14)] 2000-01-01 [metadata(qtype=-14)]
      2000-01-02 [metadata(qtype=-14)] 2000-01-03 [metadata(qtype=-14)]]
     
+    >>> # serialize single element strings as q characters 
+    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = False))
+    [ 10,  10, -10]
     
+    >>> # serialize single element strings as q strings 
+    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = True))
+    [10, 10, 10]
