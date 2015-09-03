@@ -17,8 +17,13 @@
 from distutils.core import setup
 from qpython import __version__
 
-import numpy
 import os
+
+try:
+    import numpy
+    include_dirs = [numpy.get_include()]
+except:
+    include_dirs = []
 
 try:
     from Cython.Build import cythonize
@@ -49,7 +54,7 @@ setup(name = 'qPython',
       license = 'Apache License Version 2.0',
 
       ext_modules = ext_modules,
-      include_dirs = [numpy.get_include()],
+      include_dirs = include_dirs,
 
       keywords = ['kdb+', 'q'],
       classifiers=[
