@@ -28,11 +28,6 @@ from qpython.qtemporal import qtemporal, to_raw_qtemporal, array_to_raw_qtempora
 BINARY = OrderedDict()
 
 EXPRESSIONS = OrderedDict((
-                           (b'flip `name`iq`grade!(`Dent`Beeblebrox`Prefect;98 42 126;"a c")',
-                                                                      qtable(qlist(numpy.array(['name', 'iq', 'grade']), qtype = QSYMBOL_LIST),
-                                                                             [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST), 
-                                                                              qlist(numpy.array([98, 42, 126]), qtype = QLONG_LIST),
-                                                                              "a c"])),
                    (b'("G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661"; 0Ng)',
                                                                      qlist(numpy.array([uuid.UUID('8c680a01-5a49-5aab-5a65-d4bfddb6a661'), qnull(QGUID)]), qtype=QGUID_LIST)),
                    (b'"G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661"',    uuid.UUID('8c680a01-5a49-5aab-5a65-d4bfddb6a661')),
