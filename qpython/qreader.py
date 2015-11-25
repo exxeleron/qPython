@@ -16,6 +16,9 @@
 
 import struct
 import sys
+if sys.version > '3':
+    from sys import intern
+    unicode = str
 
 from qpython import MetaData, CONVERSION_OPTIONS
 from qpython.qtype import *  # @UnusedWildImport
@@ -107,11 +110,11 @@ class QReader(object):
             # try to load optional pandas binding
             try:
                 from qpython._pandas import PandasQReader
-                return super(QReader, cls).__new__(PandasQReader, args, kwargs)
+                return super(QReader, cls).__new__(PandasQReader)
             except ImportError:
-                return super(QReader, cls).__new__(QReader, args, kwargs)
+                return super(QReader, cls).__new__(QReader)
         else:
-            return super(QReader, cls).__new__(cls, args, kwargs)
+            return super(QReader, cls).__new__(cls)
 
 
     def __init__(self, stream):
@@ -243,12 +246,12 @@ class QReader(object):
     def _read_string(self, qtype = QSTRING):
         self._buffer.skip()  # ignore attributes
         length = self._buffer.get_int()
-        return intern(self._buffer.raw(length)) if length > 0 else ''
+        return self._buffer.raw(length) if length > 0 else b''
 
 
     @parse(QSYMBOL)
     def _read_symbol(self, qtype = QSYMBOL):
-        return numpy.string_(intern(self._buffer.get_symbol()))
+        return numpy.string_(self._buffer.get_symbol())
 
 
     @parse(QCHAR)
@@ -291,7 +294,7 @@ class QReader(object):
             data = numpy.array(symbols, dtype = numpy.string_)
             return qlist(data, qtype = qtype, adjust_dtype = False)
         elif qtype == QGUID_LIST:
-            data = numpy.array([self._read_guid() for x in xrange(length)])
+            data = numpy.array([self._read_guid() for x in range(length)])
             return qlist(data, qtype = qtype, adjust_dtype = False)
         elif conversion:
             raw = self._buffer.raw(length * ATOM_SIZE[qtype])
@@ -350,7 +353,7 @@ class QReader(object):
     def _read_lambda(self, qtype = QLAMBDA):
         self._buffer.get_symbol()  # skip
         expression = self._read_object()
-        return QLambda(expression)
+        return QLambda(expression.decode())
 
 
     @parse(QCOMPOSITION_FUNC)
@@ -382,7 +385,7 @@ class QReader(object):
             raise QReaderException('There is no input data. QReader requires either stream or data chunk')
 
         if length == 0:
-            return ''
+            return b''
         else:
             data = self._stream.read(length)
 
@@ -505,7 +508,7 @@ class QReader(object):
             
             :returns: ``\\x00`` terminated string
             '''
-            new_position = self._data.find('\x00', self._position)
+            new_position = self._data.find(b'\x00', self._position)
 
             if new_position < 0:
                 raise QReaderException('Failed to read symbol from stream')
@@ -531,7 +534,7 @@ class QReader(object):
                 return []
 
             while c < count:
-                new_position = self._data.find('\x00', new_position)
+                new_position = self._data.find(b'\x00', new_position)
 
                 if new_position < 0:
                     raise QReaderException('Failed to read symbol from stream')
@@ -542,6 +545,6 @@ class QReader(object):
             raw = self._data[self._position : new_position - 1]
             self._position = new_position
 
-            return raw.split('\x00')
+            return raw.split(b'\x00')
 
 

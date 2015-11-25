@@ -17,7 +17,9 @@
 __all__ = ['qconnection', 'qtype', 'qtemporal', 'qcollection']
 
 
-__version__ = '1.0.2'
+__version__ = '1.1.0'
+
+
 
 try:
     from qpython.fastutils import uncompress
@@ -57,6 +59,7 @@ class MetaData(object):
 
     def union_dict(self, **kw):
         return dict(list(self.as_dict().items()) + list(kw.items()))
+
 
 
 CONVERSION_OPTIONS = MetaData(raw = False,

@@ -123,7 +123,7 @@ class QConnection(object):
             self._initialize()
 
             self._writer = QWriter(self._connection, protocol_version = self._protocol_version)
-            self._reader = QReader(self._connection.makefile())
+            self._reader = QReader(self._connection.makefile('b'))
 
 
     def _init_socket(self):
@@ -160,14 +160,15 @@ class QConnection(object):
     def _initialize(self):
         '''Performs a IPC protocol handshake.'''
         credentials = (self.username if self.username else '') + ':' + (self.password if self.password else '')
-        self._connection.send(credentials + '\3\0')
+        credentials = credentials.encode('latin-1')
+        self._connection.send(credentials + b'\3\0')
         response = self._connection.recv(1)
 
         if len(response) != 1:
             self.close()
             self._init_socket()
 
-            self._connection.send(credentials + '\0')
+            self._connection.send(credentials + b'\0')
             response = self._connection.recv(1)
             if len(response) != 1:
                 self.close()

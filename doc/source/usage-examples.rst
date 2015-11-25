@@ -10,29 +10,30 @@ Following example presents how to execute simple, synchronous query against a re
 
     from qpython import qconnection
     
+    
     if __name__ == '__main__':
         # create connection object
-        q = qconnection.QConnection(host = 'localhost', port = 5000)
+        q = qconnection.QConnection(host='localhost', port=5000)
         # initialize connection
         q.open()
     
-        print q
-        print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
+        print(q)
+        print('IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected()))
     
         # simple query execution via: QConnection.__call__
         data = q('{`int$ til x}', 10)
-        print 'type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data)
-        
+        print('type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data))
+    
         # simple query execution via: QConnection.sync
         data = q.sync('{`long$ til x}', 10)
-        print 'type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data)
-        
+        print('type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data))
+    
         # low-level query and read
-        q.query(qconnection.MessageType.SYNC,'{`short$ til x}', 10) # sends a SYNC query
-        msg = q.receive(data_only = False, raw = False) # retrieve entire message
-        print 'type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(msg), msg.type, msg.size, msg.is_compressed)
+        q.query(qconnection.MessageType.SYNC, '{`short$ til x}', 10) # sends a SYNC query
+        msg = q.receive(data_only=False, raw=False) # retrieve entire message
+        print('type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(msg), msg.type, msg.size, msg.is_compressed))
         data = msg.data
-        print 'type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data)
+        print('type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data))
         # close connection
         q.close()
 
@@ -69,33 +70,33 @@ Following example presents how to execute simple, asynchronous query against a r
         def __init__(self, q):
             super(ListenerThread, self).__init__()
             self.q = q
-            self._stop = threading.Event()
+            self._stopper = threading.Event()
     
         def stop(self):
-            self._stop.set()
+            self._stopper.set()
     
         def stopped(self):
-            return self._stop.isSet()
+            return self._stopper.isSet()
     
         def run(self):
             while not self.stopped():
-                print '.'
+                print('.')
                 try:
                     message = self.q.receive(data_only = False, raw = False) # retrieve entire message
                     
                     if message.type != MessageType.ASYNC:
-                        print 'Unexpected message, expected message of type: ASYNC'
+                        print('Unexpected message, expected message of type: ASYNC')
                         
-                    print 'type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(message), message.type, message.size, message.is_compressed)
-                    print message.data
+                    print('type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(message), message.type, message.size, message.is_compressed))
+                    print(message.data)
                     
                     if isinstance(message.data, QDictionary):
                         # stop after 10th query
-                        if message.data['queryid'] == 9:
+                        if message.data[b'queryid'] == 9:
                             self.stop()
                         
-                except QException, e:
-                    print e
+                except QException as e:
+                    print(e)
     
     
     if __name__ == '__main__':
@@ -104,8 +105,8 @@ Following example presents how to execute simple, asynchronous query against a r
         # initialize connection
         q.open()
     
-        print q
-        print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
+        print(q)
+        print('IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected()))
     
         try:
             # definition of asynchronous multiply function
@@ -117,10 +118,10 @@ Following example presents how to execute simple, asynchronous query against a r
             t = ListenerThread(q)
             t.start()
              
-            for x in xrange(10):
+            for x in range(10):
                 a = random.randint(1, 100)
                 b = random.randint(1, 100)
-                print 'Asynchronous call with queryid=%s with arguments: %s, %s' % (x, a, b)
+                print('Asynchronous call with queryid=%s with arguments: %s, %s' % (x, a, b))
                 q.async('asynchMult', x, a, b);
             
             time.sleep(1)
@@ -135,31 +136,38 @@ This example depicts how to create a simple interactive console for communicatio
 
 .. code:: python
 
+    import qpython
     from qpython import qconnection
     from qpython.qtype import QException
     
+    try:
+        input = raw_input
+    except NameError:
+        pass
+    
     
     if __name__ == '__main__':
+        print('qPython %s Cython extensions enabled: %s' % (qpython.__version__, qpython.__is_cython_enabled__))
         with qconnection.QConnection(host = 'localhost', port = 5000) as q:
-            print q
-            print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
-        
+            print(q)
+            print('IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected()))
+    
             while True:
                 try:
-                    x = raw_input('Q)')
+                    x = input('Q)')
                 except EOFError:
-                    print
+                    print('')
                     break
-        
+    
                 if x == '\\\\':
                     break
-        
+    
                 try:
                     result = q(x)
-                    print type(result)
-                    print result
-                except QException, msg:
-                    print 'q error: \'%s' % msg
+                    print(type(result))
+                    print(result)
+                except QException as msg:
+                    print('q error: \'%s' % msg)
 
                     
 Twisted integration
@@ -182,7 +190,10 @@ This example presents how the `qPython` can be used along with `Twisted`_ to bui
     from qpython.qreader import QReader
     from qpython.qwriter import QWriter, QWriterException
     
+    
+    
     class IPCProtocol(Protocol):
+    
         class State(object):
             UNKNOWN = -1
             HANDSHAKE = 0
@@ -193,37 +204,37 @@ This example presents how the `qPython` can be used along with `Twisted`_ to bui
             self.credentials = self.factory.username + ':' + self.factory.password if self.factory.password else ''
     
             self.transport.write(self.credentials + '\3\0')
-            
+    
             self._message = None
     
         def dataReceived(self, data):
             if self.state == IPCProtocol.State.CONNECTED:
                 try:
                     if not self._message:
-                        self._message = self._reader.read_header(source = data)
+                        self._message = self._reader.read_header(source=data)
                         self._buffer = ''
-                        
+    
                     self._buffer += data
                     buffer_len = len(self._buffer) if self._buffer else 0
-                    
+    
                     while self._message and self._message.size <= buffer_len:
                         complete_message = self._buffer[:self._message.size]
-                        
+    
                         if buffer_len > self._message.size:
                             self._buffer = self._buffer[self._message.size:]
                             buffer_len = len(self._buffer) if self._buffer else 0
-                            self._message = self._reader.read_header(source = self._buffer)
+                            self._message = self._reader.read_header(source=self._buffer)
                         else:
                             self._message = None
                             self._buffer = ''
                             buffer_len = 0
     
-                        self.factory.onMessage(self._reader.read(source = complete_message))
+                        self.factory.onMessage(self._reader.read(source=complete_message, numpy_temporals=True))
                 except:
                     self.factory.onError(sys.exc_info())
                     self._message = None
                     self._buffer = ''
-                    
+    
             elif self.state == IPCProtocol.State.UNKNOWN:
                 # handshake
                 if len(data) == 1:
@@ -231,7 +242,7 @@ This example presents how the `qPython` can be used along with `Twisted`_ to bui
                 else:
                     self.state = IPCProtocol.State.HANDSHAKE
                     self.transport.write(self.credentials + '\0')
-                    
+    
             else:
                 # protocol version fallback
                 if len(data) == 1:
@@ -242,8 +253,8 @@ This example presents how the `qPython` can be used along with `Twisted`_ to bui
         def _init(self, data):
             self.state = IPCProtocol.State.CONNECTED
             self.protocol_version = min(struct.unpack('B', data)[0], 3)
-            self._writer = QWriter(stream = None, protocol_version = self.protocol_version)
-            self._reader = QReader(stream = None)
+            self._writer = QWriter(stream=None, protocol_version=self.protocol_version)
+            self._reader = QReader(stream=None)
     
             self.factory.clientReady(self)
     
@@ -257,7 +268,9 @@ This example presents how the `qPython` can be used along with `Twisted`_ to bui
                 self.transport.write(self._writer.write([query] + list(parameters), msg_type))
     
     
+    
     class IPCClientFactory(ClientFactory):
+    
         protocol = IPCProtocol
     
         def __init__(self, username, password, connect_success_callback, connect_fail_callback, data_callback, error_callback):
@@ -271,8 +284,9 @@ This example presents how the `qPython` can be used along with `Twisted`_ to bui
             self.data_callback = data_callback
             self.error_callback = error_callback
     
+    
         def clientConnectionLost(self, connector, reason):
-            print 'Lost connection.  Reason:', reason
+            print('Lost connection.  Reason: %s' % reason)
             # connector.connect()
     
         def clientConnectionFailed(self, connector, reason):
@@ -297,20 +311,25 @@ This example presents how the `qPython` can be used along with `Twisted`_ to bui
                 self.client.query(msg_type, query, *parameters)
     
     
+    
     def onConnectSuccess(source):
-        print 'Connected, protocol version: ', source.client.protocol_version
-        source.query(MessageType.SYNC, '.z.ts:{(handle)((1000*(1 ? 100))[0] ? 100)}')
+        print('Connected, protocol version: %s' % source.client.protocol_version)
+        source.query(MessageType.SYNC, '.z.ts:{(handle)(`timestamp$100?1000000000000000000)}')
         source.query(MessageType.SYNC, '.u.sub:{[t;s] handle:: neg .z.w}')
         source.query(MessageType.ASYNC, '.u.sub', 'trade', '')
     
+    
     def onConnectFail(source, reason):
-        print 'Connection refused: ', reason
+        print('Connection refused: %s' % reason)
+    
     
     def onMessage(source, message):
-        print 'Received: ', message.type, message.data
+        print('Received: %s %s' % (message.type, message.data))
+    
     
     def onError(source, error):
-        print 'Error: ', error
+        print('Error: %s' % error)
+    
     
     if __name__ == '__main__':
         factory = IPCClientFactory('user', 'pwd', onConnectSuccess, onConnectFail, onMessage, onError)
@@ -325,69 +344,68 @@ This example depicts how to subscribe to standard kdb+ tickerplant service:
 
 .. code:: python
 
-   import numpy
-   import threading
-   import sys
-   
-   from qpython import qconnection
-   from qpython.qtype import QException
-   from qpython.qconnection import MessageType
-   from qpython.qcollection import QTable
-   
-   
-   class ListenerThread(threading.Thread):
-       
-       def __init__(self, q):
-           super(ListenerThread, self).__init__()
-           self.q = q
-           self._stop = threading.Event()
-   
-       def stop(self):
-           self._stop.set()
-   
-       def stopped(self):
-           return self._stop.isSet()
-   
-       def run(self):
-           while not self.stopped():
-               print '.'
-               try:
-                   message = self.q.receive(data_only = False, raw = False) # retrieve entire message
-                   
-                   if message.type != MessageType.ASYNC:
-                       print 'Unexpected message, expected message of type: ASYNC'
-                       
-                   print 'type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(message), message.type, message.size, message.is_compressed)
-                   
-                   if isinstance(message.data, list):
-                       # unpack upd message
-                       if len(message.data) == 3 and message.data[0] == 'upd' and isinstance(message.data[2], QTable):
-                           for row in message.data[2]:
-                               print row
-                   
-               except QException, e:
-                   print e
-   
-   
-   if __name__ == '__main__':
-       with qconnection.QConnection(host = 'localhost', port = 17010) as q:
-           print q
-           print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
-           print 'Press <ENTER> to close application'
-   
-           # subscribe to tick
-           response = q.sync('.u.sub', numpy.string_('trade'), numpy.string_(''))
-           # get table model 
-           if isinstance(response[1], QTable):
-               print '%s table data model: %s' % (response[0], response[1].dtype)
-   
-           t = ListenerThread(q)
-           t.start()
-           
-           sys.stdin.readline()
-           
-           t.stop()
-
+    import numpy
+    import threading
+    import sys
+    
+    from qpython import qconnection
+    from qpython.qtype import QException
+    from qpython.qconnection import MessageType
+    from qpython.qcollection import QTable
+    
+    
+    class ListenerThread(threading.Thread):
+        
+        def __init__(self, q):
+            super(ListenerThread, self).__init__()
+            self.q = q
+            self._stopper = threading.Event()
+    
+        def stopit(self):
+            self._stopper.set()
+    
+        def stopped(self):
+            return self._stopper.is_set()
+    
+        def run(self):
+            while not self.stopped():
+                print('.')
+                try:
+                    message = self.q.receive(data_only = False, raw = False) # retrieve entire message
+                    
+                    if message.type != MessageType.ASYNC:
+                        print('Unexpected message, expected message of type: ASYNC')
+                        
+                    print('type: %s, message type: %s, data size: %s, is_compressed: %s ' % (type(message), message.type, message.size, message.is_compressed))
+                    
+                    if isinstance(message.data, list):
+                        # unpack upd message
+                        if len(message.data) == 3 and message.data[0] == b'upd' and isinstance(message.data[2], QTable):
+                            for row in message.data[2]:
+                                print(row)
+                    
+                except QException as e:
+                    print(e)
+    
+    
+    if __name__ == '__main__':
+        with qconnection.QConnection(host = 'localhost', port = 17010) as q:
+            print(q)
+            print('IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected()))
+            print('Press <ENTER> to close application')
+    
+            # subscribe to tick
+            response = q.sync('.u.sub', numpy.string_('trade'), numpy.string_(''))
+            # get table model 
+            if isinstance(response[1], QTable):
+                print('%s table data model: %s' % (response[0], response[1].dtype))
+    
+            t = ListenerThread(q)
+            t.start()
+            
+            sys.stdin.readline()
+            
+            t.stopit()
            
 
 Data publisher
@@ -410,59 +428,59 @@ This example shows how to stream data to the kdb+ process using standard tickerp
     
     
     class PublisherThread(threading.Thread):
-        
+    
         def __init__(self, q):
             super(PublisherThread, self).__init__()
             self.q = q
-            self._stop = threading.Event()
+            self._stopper = threading.Event()
     
         def stop(self):
-            self._stop.set()
+            self._stopper.set()
     
         def stopped(self):
-            return self._stop.isSet()
+            return self._stopper.isSet()
     
         def run(self):
             while not self.stopped():
-                print '.'
+                print('.')
                 try:
                     # publish data to tick
                     # function: .u.upd
                     # table: ask
                     self.q.sync('.u.upd', numpy.string_('ask'), self.get_ask_data())
-                    
+    
                     time.sleep(1)
-                except QException, e:
-                    print e
+                except QException as e:
+                    print(e)
                 except:
                     self.stop()
-                    
+    
         def get_ask_data(self):
             c = random.randint(1, 10)
-            
+    
             today = numpy.datetime64(datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0))
-             
-            time = [numpy.timedelta64((numpy.datetime64(datetime.datetime.now()) - today), 'ms') for x in xrange(c)]
-            instr = ['instr_%d' % random.randint(1, 100) for x in xrange(c)]
-            src = ['qPython' for x in xrange(c)]
-            ask = [random.random() * random.randint(1, 100) for x in xrange(c)]
-            
+    
+            time = [numpy.timedelta64((numpy.datetime64(datetime.datetime.now()) - today), 'ms') for x in range(c)]
+            instr = ['instr_%d' % random.randint(1, 100) for x in range(c)]
+            src = ['qPython' for x in range(c)]
+            ask = [random.random() * random.randint(1, 100) for x in range(c)]
+    
             data = [qlist(time, qtype=QTIME_LIST), qlist(instr, qtype=QSYMBOL_LIST), qlist(src, qtype=QSYMBOL_LIST), qlist(ask, qtype=QFLOAT_LIST)]
-            print data
+            print(data)
             return data
-
-
+    
+    
     if __name__ == '__main__':
         with qconnection.QConnection(host='localhost', port=17010) as q:
-            print q
-            print 'IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected())
-            print 'Press <ENTER> to close application'
+            print(q)
+            print('IPC version: %s. Is connected: %s' % (q.protocol_version, q.is_connected()))
+            print('Press <ENTER> to close application')
     
             t = PublisherThread(q)
             t.start()
-            
+    
             sys.stdin.readline()
-            
+    
             t.stop()
             t.join()
 

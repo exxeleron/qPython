@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-from qtype import *  # @UnusedWildImport
+from qpython.qtype import *  # @UnusedWildImport
 from qpython import MetaData
 from qpython.qtemporal import qtemporal, from_raw_qtemporal, to_raw_qtemporal
 
@@ -85,7 +85,7 @@ def get_list_qtype(array):
 
     qtype = None
 
-    if array.dtype == '|S1':
+    if str(array.dtype) in ('|S1', '<U1', '>U1', '|U1') :
         qtype = QCHAR
 
     if qtype is None:
@@ -168,7 +168,7 @@ def qlist(array, adjust_dtype = True, **meta):
         if meta and 'qtype' in meta and meta['qtype'] == QGENERAL_LIST:
             # force shape and dtype for generic lists
             tarray = numpy.ndarray(shape = len(array), dtype = numpy.dtype('O'))
-            for i in xrange(len(array)):
+            for i in range(len(array)):
                 tarray[i] = array[i]
             array = tarray
         else:
@@ -268,11 +268,11 @@ class QDictionary(object):
 
     def items(self):
         '''Return a copy of the dictionary's list of ``(key, value)`` pairs.'''
-        return [(self.keys[x], self.values[x]) for x in xrange(len(self.keys))]
+        return [(self.keys[x], self.values[x]) for x in range(len(self.keys))]
 
     def iteritems(self):
         '''Return an iterator over the dictionary's ``(key, value)`` pairs.'''
-        for x in xrange(len(self.keys)):
+        for x in range(len(self.keys)):
             yield (self.keys[x], self.values[x])
 
     def iterkeys(self):
@@ -365,21 +365,26 @@ def qtable(columns, data, **meta):
         meta['qtype'] = QTABLE
 
     dtypes = []
-    for i in xrange(len(columns)):
+    for i in range(len(columns)):
+        column_name = columns[i] if isinstance(columns[i], str) else columns[i].decode("utf-8")
+        
         if isinstance(data[i], str):
             # convert character list (represented as string) to numpy representation
-            data[i] = numpy.array(list(data[i]), dtype = numpy.str)
+            data[i] = numpy.array(list(data[i]), dtype = numpy.string_)
+        if isinstance(data[i], bytes):
+            data[i] = numpy.array(list(data[i].decode()), dtype = numpy.string_)
 
-        if columns[i] in meta:
-            data[i] = qlist(data[i], qtype = meta[columns[i]])
+        if column_name in meta:
+            data[i] = qlist(data[i], qtype = meta[column_name])
         elif not isinstance(data[i], QList):
             if type(data[i]) in (list, tuple):
                 data[i] = qlist(data[i], qtype = QGENERAL_LIST)
             else:
                 data[i] = qlist(data[i])
 
-        meta[columns[i]] = data[i].meta.qtype
-        dtypes.append((columns[i], data[i].dtype))
+        
+        meta[column_name] = data[i].meta.qtype
+        dtypes.append((column_name, data[i].dtype))
 
     table = numpy.core.records.fromarrays(data, dtype = dtypes)
     table = table.view(QTable)
@@ -445,11 +450,11 @@ class QKeyedTable(object):
 
     def items(self):
         '''Return a copy of the keyed table's list of ``(key, value)`` pairs.'''
-        return [(self.keys[x], self.values[x]) for x in xrange(len(self.keys))]
+        return [(self.keys[x], self.values[x]) for x in range(len(self.keys))]
 
     def iteritems(self):
         '''Return an iterator over the keyed table's ``(key, value)`` pairs.'''
-        for x in xrange(len(self.keys)):
+        for x in range(len(self.keys)):
             yield (self.keys[x], self.values[x])
 
     def iterkeys(self):
