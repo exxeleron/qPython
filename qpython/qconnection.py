@@ -74,7 +74,7 @@ class QConnection(object):
        strings are encoded as q strings instead of chars, **Default**: ``False``
     '''
 
-    def __init__(self, host, port, username = None, password = None, timeout = None, **options):
+    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', **options):
         self.host = host
         self.port = port
         self.username = username
@@ -84,6 +84,8 @@ class QConnection(object):
         self._protocol_version = None
 
         self.timeout = timeout
+
+        self._encoding = encoding
 
         self._options = MetaData(**CONVERSION_OPTIONS.union_dict(**options))
 
@@ -160,7 +162,7 @@ class QConnection(object):
     def _initialize(self):
         '''Performs a IPC protocol handshake.'''
         credentials = (self.username if self.username else '') + ':' + (self.password if self.password else '')
-        credentials = credentials.encode('latin-1')
+        credentials = credentials.encode(self._encoding)
         self._connection.send(credentials + b'\3\0')
         response = self._connection.recv(1)
 

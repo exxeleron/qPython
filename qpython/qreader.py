@@ -117,9 +117,10 @@ class QReader(object):
             return super(QReader, cls).__new__(cls)
 
 
-    def __init__(self, stream):
+    def __init__(self, stream, encoding = 'latin-1'):
         self._stream = stream
         self._buffer = QReader.BytesBuffer()
+        self._encoding = encoding
 
 
     def read(self, source = None, **options):
@@ -256,7 +257,7 @@ class QReader(object):
 
     @parse(QCHAR)
     def _read_char(self, qtype = QCHAR):
-        return chr(self._read_atom(QCHAR)).encode('latin-1') 
+        return chr(self._read_atom(QCHAR)).encode(self._encoding) 
 
 
     @parse(QGUID)
