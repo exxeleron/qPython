@@ -50,18 +50,6 @@ class QWriter(object):
     serialize = Mapper(_writer_map)
 
 
-    def __new__(cls, *args, **kwargs):
-        if cls is QWriter:
-            # try to load optional pandas binding
-            try:
-                from qpython._pandas import PandasQWriter
-                return super(QWriter, cls).__new__(PandasQWriter)
-            except ImportError:
-                return super(QWriter, cls).__new__(QWriter)
-        else:
-            return super(QWriter, cls).__new__(cls)
-
-
     def __init__(self, stream, protocol_version):
         self._stream = stream
         self._protocol_version = protocol_version

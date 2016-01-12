@@ -13,7 +13,7 @@ qPython wraps connection to a q process in instances of the
       q.close()
 
 .. note:: the connection is not established when the connector instance is 
-          created. The connection is initialized explicitly by calling the 
+          created. The connection is initialised explicitly by calling the 
           :meth:`~qpython.qconnection.QConnection.open` method.
 
 
@@ -49,3 +49,43 @@ Conversion options can be also overwritten while executing
 synchronous/asynchronous queries (:meth:`~qpython.qconnection.QConnection.sync`,
 :meth:`~qpython.qconnection.QConnection.async`) or retrieving data from q
 (:meth:`~qpython.qconnection.QConnection.receive`).
+
+
+Custom IPC protocol serializers/deserializers
+*********************************************
+
+Default IPC serializers (`.QWriter` and `.PandasQWriter`) and deserializers
+(`.QReader` and `.PandasQReader`) can be replaced with custom implementations.
+This allow users to override the default mapping between the q types and Python
+representation. 
+::
+
+  q = qconnection.QConnection(host = 'localhost', port = 5000, writer_class = MyQWriter, reader_class = MyQReader)
+
+
+::
+
+    class MyQReader(QReader):
+        # QReader and QWriter use decorators to map data types and corresponding function handlers 
+        parse = Mapper(QReader._reader_map)
+        
+        def _read_list(self, qtype):
+            if qtype == QSYMBOL_LIST:
+                self._buffer.skip()
+                length = self._buffer.get_int()
+                symbols = self._buffer.get_symbols(length)
+                return [s.decode(self._encoding) for s in symbols]
+            else:
+                return QReader._read_list(self, qtype = qtype)
+            
+        @parse(QSYMBOL)
+        def _read_symbol(self, qtype = QSYMBOL):
+            return numpy.string_(self._buffer.get_symbol()).decode(self._encoding)
+    
+     
+    with qconnection.QConnection(host='localhost', port=5000, reader_class = MyQReader) as q:
+        symbols = q.sync('`foo`bar')
+        print(symbols, type(symbols), type(symbols[0]))
+        
+        symbol = q.sync('`foo')
+        print(symbol, type(symbol))

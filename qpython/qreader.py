@@ -99,22 +99,11 @@ class QReader(object):
     
     :Parameters:
      - `stream` (`file object` or `None`) - data input stream
+     - `encoding` (`string`) - encoding for characters parsing
     '''
 
     _reader_map = {}
     parse = Mapper(_reader_map)
-
-
-    def __new__(cls, *args, **kwargs):
-        if cls is QReader:
-            # try to load optional pandas binding
-            try:
-                from qpython._pandas import PandasQReader
-                return super(QReader, cls).__new__(PandasQReader)
-            except ImportError:
-                return super(QReader, cls).__new__(QReader)
-        else:
-            return super(QReader, cls).__new__(cls)
 
 
     def __init__(self, stream, encoding = 'latin-1'):
@@ -257,7 +246,7 @@ class QReader(object):
 
     @parse(QCHAR)
     def _read_char(self, qtype = QCHAR):
-        return chr(self._read_atom(QCHAR)).encode(self._encoding) 
+        return chr(self._read_atom(QCHAR)).encode(self._encoding)
 
 
     @parse(QGUID)
