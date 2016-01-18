@@ -91,15 +91,26 @@ In order to distinguish symbols and strings on the Python side, following rules
 apply:
 
 - q symbols are represented as ``numpy.string_`` type,
-- q strings are mapped to plain Python strings.
+- q strings are mapped to plain Python strings in Python 2 and ``bytes`` in Python 3.
 
 ::
-
+    # Python 2
     # `quickbrownfoxjumpsoveralazydog
+    <type 'numpy.string_'>
     numpy.string_('quickbrownfoxjumpsoveralazydog')
     
     # "quick brown fox jumps over a lazy dog"
+    <type 'str'>
     'quick brown fox jumps over a lazy dog'
+
+    # Python 3
+    # `quickbrownfoxjumpsoveralazydog
+    <class 'numpy.bytes_'>
+    b'quickbrownfoxjumpsoveralazydog'
+    
+    # "quick brown fox jumps over a lazy dog"
+    <class 'bytes'>
+    b'quick brown fox jumps over a lazy dog'
 
 
 .. note:: By default, single element strings are serialized as q characters. 
