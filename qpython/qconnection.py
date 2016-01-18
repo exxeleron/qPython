@@ -142,8 +142,8 @@ class QConnection(object):
             self._init_socket()
             self._initialize()
 
-            self._writer = self._writer_class(self._connection, protocol_version = self._protocol_version)
-            self._reader = self._reader_class(self._connection.makefile('b'))
+            self._writer = self._writer_class(self._connection, protocol_version = self._protocol_version, encoding = self._encoding)
+            self._reader = self._reader_class(self._connection.makefile('b'), encoding = self._encoding)
 
 
     def _init_socket(self):
