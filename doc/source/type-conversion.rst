@@ -94,6 +94,7 @@ apply:
 - q strings are mapped to plain Python strings in Python 2 and ``bytes`` in Python 3.
 
 ::
+
     # Python 2
     # `quickbrownfoxjumpsoveralazydog
     <type 'numpy.string_'>
