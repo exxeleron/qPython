@@ -1,3 +1,5 @@
+.. _connection:
+
 Managing connection
 ===================
 
@@ -51,41 +53,19 @@ synchronous/asynchronous queries (:meth:`~qpython.qconnection.QConnection.sync`,
 (:meth:`~qpython.qconnection.QConnection.receive`).
 
 
+
+.. _custom_ipc_mapping:
+
 Custom IPC protocol serializers/deserializers
 *********************************************
 
-Default IPC serializers (`.QWriter` and `.PandasQWriter`) and deserializers
-(`.QReader` and `.PandasQReader`) can be replaced with custom implementations.
-This allow users to override the default mapping between the q types and Python
-representation. 
+Default IPC serializers (:class:`.QWriter` and :class:`._pandas.PandasQWriter`) and 
+deserializers (:class:`.QReader` and :class:`._pandas.PandasQReader`) can be replaced 
+with custom implementations. This allow users to override the default mapping 
+between the q types and Python representation. 
 ::
 
   q = qconnection.QConnection(host = 'localhost', port = 5000, writer_class = MyQWriter, reader_class = MyQReader)
 
 
-::
-
-    class MyQReader(QReader):
-        # QReader and QWriter use decorators to map data types and corresponding function handlers 
-        parse = Mapper(QReader._reader_map)
-        
-        def _read_list(self, qtype):
-            if qtype == QSYMBOL_LIST:
-                self._buffer.skip()
-                length = self._buffer.get_int()
-                symbols = self._buffer.get_symbols(length)
-                return [s.decode(self._encoding) for s in symbols]
-            else:
-                return QReader._read_list(self, qtype = qtype)
-            
-        @parse(QSYMBOL)
-        def _read_symbol(self, qtype = QSYMBOL):
-            return numpy.string_(self._buffer.get_symbol()).decode(self._encoding)
-    
-     
-    with qconnection.QConnection(host='localhost', port=5000, reader_class = MyQReader) as q:
-        symbols = q.sync('`foo`bar')
-        print(symbols, type(symbols), type(symbols[0]))
-        
-        symbol = q.sync('`foo')
-        print(symbol, type(symbol))
+Refer to :ref:`custom_type_mapping` for details.

@@ -1,3 +1,5 @@
+.. _pandas:
+
 Pandas integration
 ==================
 
@@ -5,7 +7,7 @@ The `qPython` allows user to use ``pandas.DataFrame`` and ``pandas.Series``
 instead of ``numpy.recarray`` and ``numpy.ndarray`` to represent ``q`` tables
 and vectors.
 
-In order to instrument `qPython` to use `pandas`_ data types user has to set
+In order to instrument `qPython` to use `pandas <http://pandas.pydata.org/>`_ data types user has to set
 ``pandas`` flag while:
 
 - creating :class:`.qconnection.QConnection` instance,
@@ -221,7 +223,4 @@ keyed table, use type hinting mechanism to enforce the serialization rules::
     # eid  | j
     # pos  | s
     # dates| d
-
-
-.. _pandas: http://pandas.pydata.org/
 

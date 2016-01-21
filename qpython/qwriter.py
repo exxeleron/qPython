@@ -45,6 +45,10 @@ class QWriter(object):
      - `stream` (`socket` or `None`) - stream for data serialization
      - `protocol_version` (`integer`) - version IPC protocol
      - `encoding` (`string`) - encoding for characters serialization
+    
+    :Attrbutes:
+     - `_writer_map` - stores mapping between Python types and functions 
+       responsible for serializing into IPC representation
     '''
 
     _writer_map = {}
@@ -102,7 +106,7 @@ class QWriter(object):
             else:
                 data_type = type(data)
 
-            writer = self._writer_map.get(data_type, None)
+            writer = self._get_writer(data_type)
 
             if writer:
                 writer(self, data)
@@ -113,6 +117,10 @@ class QWriter(object):
                     self._write_atom(data, qtype)
                 else:
                     raise QWriterException('Unable to serialize type: %s' % data.__class__ if isinstance(data, object) else type(data))
+
+
+    def _get_writer(self, data_type):
+        return self._writer_map.get(data_type, None)
 
 
     def _write_null(self):

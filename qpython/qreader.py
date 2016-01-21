@@ -100,6 +100,10 @@ class QReader(object):
     :Parameters:
      - `stream` (`file object` or `None`) - data input stream
      - `encoding` (`string`) - encoding for characters parsing
+     
+    :Attrbutes:
+     - `_reader_map` - stores mapping between q types and functions 
+       responsible for parsing into Python objects    
     '''
 
     _reader_map = {}
@@ -215,7 +219,7 @@ class QReader(object):
     def _read_object(self):
         qtype = self._buffer.get_byte()
 
-        reader = QReader._reader_map.get(qtype, None)
+        reader = self._get_reader(qtype)
 
         if reader:
             return reader(self, qtype)
@@ -225,6 +229,10 @@ class QReader(object):
             return self._read_atom(qtype)
 
         raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
+
+
+    def _get_reader(self, qtype):
+        return self._reader_map.get(qtype, None)
 
 
     @parse(QERROR)
