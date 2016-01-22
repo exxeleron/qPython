@@ -62,6 +62,9 @@ class QConnection(object):
      - `username` (`string` or `None`) - username for q authentication/authorization
      - `password` (`string` or `None`) - password for q authentication/authorization
      - `timeout` (`nonnegative float` or `None`) - set a timeout on blocking socket operations
+     - `encoding` (`string`) - string encoding for data deserialization
+     - `reader_class` (subclass of `QReader`) - data deserializer
+     - `writer_class` (subclass of `QWriter`) - data serializer
     :Options: 
      - `raw` (`boolean`) - if ``True`` returns raw data chunk instead of parsed 
        data, **Default**: ``False``
@@ -74,7 +77,8 @@ class QConnection(object):
        strings are encoded as q strings instead of chars, **Default**: ``False``
     '''
 
-    def __init__(self, host, port, username = None, password = None, timeout = None, **options):
+
+    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', reader_class = None, writer_class = None, **options):
         self.host = host
         self.port = port
         self.username = username
@@ -85,7 +89,23 @@ class QConnection(object):
 
         self.timeout = timeout
 
+        self._encoding = encoding
+
         self._options = MetaData(**CONVERSION_OPTIONS.union_dict(**options))
+
+        try:
+            from qpython._pandas import PandasQReader, PandasQWriter
+            self._reader_class = PandasQReader
+            self._writer_class = PandasQWriter
+        except ImportError:
+            self._reader_class = QReader
+            self._writer_class = QWriter
+
+        if reader_class:
+            self._reader_class = reader_class
+
+        if writer_class:
+            self._writer_class = writer_class
 
 
     def __enter__(self):
@@ -122,8 +142,8 @@ class QConnection(object):
             self._init_socket()
             self._initialize()
 
-            self._writer = QWriter(self._connection, protocol_version = self._protocol_version)
-            self._reader = QReader(self._connection.makefile('b'))
+            self._writer = self._writer_class(self._connection, protocol_version = self._protocol_version, encoding = self._encoding)
+            self._reader = self._reader_class(self._connection.makefile('b'), encoding = self._encoding)
 
 
     def _init_socket(self):
@@ -160,7 +180,7 @@ class QConnection(object):
     def _initialize(self):
         '''Performs a IPC protocol handshake.'''
         credentials = (self.username if self.username else '') + ':' + (self.password if self.password else '')
-        credentials = credentials.encode('latin-1')
+        credentials = credentials.encode(self._encoding)
         self._connection.send(credentials + b'\3\0')
         response = self._connection.recv(1)
 

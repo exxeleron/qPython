@@ -43,28 +43,22 @@ class QWriter(object):
     
     :Parameters:
      - `stream` (`socket` or `None`) - stream for data serialization
-     -  `protocol_version` (`integer`) - version IPC protocol
+     - `protocol_version` (`integer`) - version IPC protocol
+     - `encoding` (`string`) - encoding for characters serialization
+    
+    :Attrbutes:
+     - `_writer_map` - stores mapping between Python types and functions 
+       responsible for serializing into IPC representation
     '''
 
     _writer_map = {}
     serialize = Mapper(_writer_map)
 
 
-    def __new__(cls, *args, **kwargs):
-        if cls is QWriter:
-            # try to load optional pandas binding
-            try:
-                from qpython._pandas import PandasQWriter
-                return super(QWriter, cls).__new__(PandasQWriter)
-            except ImportError:
-                return super(QWriter, cls).__new__(QWriter)
-        else:
-            return super(QWriter, cls).__new__(cls)
-
-
-    def __init__(self, stream, protocol_version):
+    def __init__(self, stream, protocol_version, encoding = 'latin-1'):
         self._stream = stream
         self._protocol_version = protocol_version
+        self._encoding = encoding
 
 
     def write(self, data, msg_type, **options):
@@ -87,7 +81,7 @@ class QWriter(object):
         self._options = MetaData(**CONVERSION_OPTIONS.union_dict(**options))
 
         # header and placeholder for message size
-        self._buffer.write(('%s%s\0\0\0\0\0\0' % (ENDIANESS, chr(msg_type))).encode("latin-1"))
+        self._buffer.write(('%s%s\0\0\0\0\0\0' % (ENDIANESS, chr(msg_type))).encode(self._encoding))
 
         self._write(data)
 
@@ -112,7 +106,7 @@ class QWriter(object):
             else:
                 data_type = type(data)
 
-            writer = self._writer_map.get(data_type, None)
+            writer = self._get_writer(data_type)
 
             if writer:
                 writer(self, data)
@@ -123,6 +117,10 @@ class QWriter(object):
                     self._write_atom(data, qtype)
                 else:
                     raise QWriterException('Unable to serialize type: %s' % data.__class__ if isinstance(data, object) else type(data))
+
+
+    def _get_writer(self, data_type):
+        return self._writer_map.get(data_type, None)
 
 
     def _write_null(self):
@@ -139,7 +137,7 @@ class QWriter(object):
         else:
             msg = data.__name__
 
-        self._buffer.write(msg.encode("latin-1"))
+        self._buffer.write(msg.encode(self._encoding))
         self._buffer.write(b'\0')
 
 
@@ -166,7 +164,7 @@ class QWriter(object):
         else:
             self._buffer.write(struct.pack('=bxi', QSTRING, len(data)))
             if isinstance(data, str):
-                self._buffer.write(data.encode("latin-1"))
+                self._buffer.write(data.encode(self._encoding))
             else:
                 self._buffer.write(data)
 

@@ -23,7 +23,8 @@ except ImportError:
     from io import BytesIO
 
 from collections import OrderedDict
-from qpython import qreader, MetaData, qwriter
+from qpython import MetaData
+from qpython._pandas import PandasQReader, PandasQWriter
 from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QList, QTemporalList, QDictionary
 from qpython.qtemporal import QTemporal
@@ -250,7 +251,7 @@ try:
             sys.stdout.write('  %-75s' % query)
             try:
                 buffer_.seek(0)
-                stream_reader = qreader.QReader(buffer_)
+                stream_reader = PandasQReader(buffer_)
                 result = stream_reader.read(pandas = True).data
                 if isinstance(value, dict):
                     if 'index' in value:
@@ -271,7 +272,7 @@ try:
 
 
     def test_writing_pandas():
-        w = qwriter.QWriter(None, 3)
+        w = PandasQWriter(None, 3)
 
         for query, value in iter(PANDAS_EXPRESSIONS.items()):
             sys.stdout.write( '%-75s' % query )

@@ -99,27 +99,21 @@ class QReader(object):
     
     :Parameters:
      - `stream` (`file object` or `None`) - data input stream
+     - `encoding` (`string`) - encoding for characters parsing
+     
+    :Attrbutes:
+     - `_reader_map` - stores mapping between q types and functions 
+       responsible for parsing into Python objects    
     '''
 
     _reader_map = {}
     parse = Mapper(_reader_map)
 
 
-    def __new__(cls, *args, **kwargs):
-        if cls is QReader:
-            # try to load optional pandas binding
-            try:
-                from qpython._pandas import PandasQReader
-                return super(QReader, cls).__new__(PandasQReader)
-            except ImportError:
-                return super(QReader, cls).__new__(QReader)
-        else:
-            return super(QReader, cls).__new__(cls)
-
-
-    def __init__(self, stream):
+    def __init__(self, stream, encoding = 'latin-1'):
         self._stream = stream
         self._buffer = QReader.BytesBuffer()
+        self._encoding = encoding
 
 
     def read(self, source = None, **options):
@@ -225,7 +219,7 @@ class QReader(object):
     def _read_object(self):
         qtype = self._buffer.get_byte()
 
-        reader = QReader._reader_map.get(qtype, None)
+        reader = self._get_reader(qtype)
 
         if reader:
             return reader(self, qtype)
@@ -235,6 +229,10 @@ class QReader(object):
             return self._read_atom(qtype)
 
         raise QReaderException('Unable to deserialize q type: %s' % hex(qtype))
+
+
+    def _get_reader(self, qtype):
+        return self._reader_map.get(qtype, None)
 
 
     @parse(QERROR)
@@ -256,7 +254,7 @@ class QReader(object):
 
     @parse(QCHAR)
     def _read_char(self, qtype = QCHAR):
-        return chr(self._read_atom(QCHAR)).encode('latin-1') 
+        return chr(self._read_atom(QCHAR)).encode(self._encoding)
 
 
     @parse(QGUID)

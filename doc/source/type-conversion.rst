@@ -1,10 +1,12 @@
+.. _type-conversion:
+
 Types conversions
 =================
 
 
 Data types supported by q and Python are incompatible and thus require 
-additional translation. This page describes rules used for converting data types
-between q and Python.
+additional translation. This page describes default rules used for converting 
+data types between q and Python.
 
 The translation mechanism used in qPython library is designed to:
  - deserialized message from kdb+ can be serialized and send back to kdb+ 
@@ -12,6 +14,8 @@ The translation mechanism used in qPython library is designed to:
  - end user can enforce type hinting for translation,
  - efficient storage for tables and lists is backed with numpy arrays.
 
+Default type mapping can be overriden by using custom IPC serializers
+or deserializers implementations.
 
 Atoms
 ***** 
@@ -91,15 +95,27 @@ In order to distinguish symbols and strings on the Python side, following rules
 apply:
 
 - q symbols are represented as ``numpy.string_`` type,
-- q strings are mapped to plain Python strings.
+- q strings are mapped to plain Python strings in Python 2 and ``bytes`` in Python 3.
 
 ::
 
+    # Python 2
     # `quickbrownfoxjumpsoveralazydog
+    <type 'numpy.string_'>
     numpy.string_('quickbrownfoxjumpsoveralazydog')
     
     # "quick brown fox jumps over a lazy dog"
+    <type 'str'>
     'quick brown fox jumps over a lazy dog'
+
+    # Python 3
+    # `quickbrownfoxjumpsoveralazydog
+    <class 'numpy.bytes_'>
+    b'quickbrownfoxjumpsoveralazydog'
+    
+    # "quick brown fox jumps over a lazy dog"
+    <class 'bytes'>
+    b'quick brown fox jumps over a lazy dog'
 
 
 .. note:: By default, single element strings are serialized as q characters. 
@@ -391,3 +407,52 @@ The :py:mod:`qtype` provides two utility functions to work with null values:
 - :func:`~.qtype.qnull` - retrieves null type for specified q type code,
 - :func:`~.qtype.is_null` - checks whether value is considered a null for
   specified q type code.
+
+
+.. _custom_type_mapping:
+
+Custom type mapping
+*******************
+
+Default type mapping can be overwritten by providing custom implementations
+of :class:`.QWriter` and/or :class:`.QReader` and proper initialization of
+the connection as described in :ref:`custom_ipc_mapping`. 
+
+:class:`.QWriter` and :class:`.QReader` use parse time decorator 
+(:class:`Mapper`) which generates mapping between q and Python types.
+This mapping is stored in a static variable: ``QReader._reader_map`` and 
+``QWriter._writer_map``. In case mapping is not found in the mapping:
+
+- :class:`.QWriter` tries to find a matching qtype in the ``~qtype.Q_TYPE``
+  dictionary and serialize data as q atom, 
+- :class:`.QReader` tries to parse lists and atoms based on the type indicator
+  in IPC stream.
+
+While subclassing these classes, user can create copy of the mapping
+in the parent class and use parse time decorator:
+
+
+.. code:: python
+
+    class PandasQWriter(QWriter):
+        _writer_map = dict.copy(QWriter._writer_map)    # create copy of default serializer map
+        serialize = Mapper(_writer_map)                 # upsert custom mapping
+    
+        @serialize(pandas.Series)
+        def _write_pandas_series(self, data, qtype = None):
+            # serialize pandas.Series into IPC stream
+            # ..omitted for readability..
+            self._write_list(data, qtype = qtype)
+  
+
+    class PandasQReader(QReader):
+        _reader_map = dict.copy(QReader._reader_map)   # create copy of default deserializer map
+        parse = Mapper(_reader_map)                    # overwrite default mapping
+    
+        @parse(QTABLE)
+        def _read_table(self, qtype = QTABLE):
+            # parse q table as pandas.DataFrame
+            # ..omitted for readability..
+            return pandas.DataFrame(data)
+
+Refer to :ref:`sample_custom_reader` for complete example.

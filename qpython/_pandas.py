@@ -32,7 +32,8 @@ from qpython.qtype import *
 
 class PandasQReader(QReader):
 
-    parse = Mapper(QReader._reader_map)
+    _reader_map = dict.copy(QReader._reader_map)
+    parse = Mapper(_reader_map)
 
     @parse(QDICTIONARY)
     def _read_dictionary(self, qtype = QDICTIONARY):
@@ -106,34 +107,36 @@ class PandasQReader(QReader):
         if self._options.pandas:
             self._options.numpy_temporals = True
 
-        list = QReader._read_list(self, qtype = qtype)
+        qlist = QReader._read_list(self, qtype = qtype)
 
         if self._options.pandas:
             if -abs(qtype) not in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN, QSYMBOL]:
                 null = QNULLMAP[-abs(qtype)][1]
-                ps = pandas.Series(data = list).replace(null, numpy.NaN)
+                ps = pandas.Series(data = qlist).replace(null, numpy.NaN)
             else:
-                ps = pandas.Series(data = list)
+                ps = pandas.Series(data = qlist)
 
             ps.meta = MetaData(qtype = qtype)
             return ps
         else:
-            return list
+            return qlist
 
 
     @parse(QGENERAL_LIST)
     def _read_general_list(self, qtype = QGENERAL_LIST):
-        list = QReader._read_general_list(self, qtype)
+        qlist = QReader._read_general_list(self, qtype)
         if self._options.pandas:
-            return [numpy.nan if isinstance(element, basestring) and element == b' ' else element for element in list]
+            return [numpy.nan if isinstance(element, basestring) and element == b' ' else element for element in qlist]
         else:
-            return list
+            return qlist
 
 
 
 class PandasQWriter(QWriter):
 
-    serialize = Mapper(QWriter._writer_map)
+    _writer_map = dict.copy(QWriter._writer_map)
+    serialize = Mapper(_writer_map)
+
 
     @serialize(pandas.Series)
     def _write_pandas_series(self, data, qtype = None):
