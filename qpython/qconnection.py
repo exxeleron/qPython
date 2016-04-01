@@ -85,6 +85,7 @@ class QConnection(object):
         self.password = password
 
         self._connection = None
+        self._connection_file = None
         self._protocol_version = None
 
         self.timeout = timeout
@@ -143,7 +144,7 @@ class QConnection(object):
             self._initialize()
 
             self._writer = self._writer_class(self._connection, protocol_version = self._protocol_version, encoding = self._encoding)
-            self._reader = self._reader_class(self._connection.makefile('b'), encoding = self._encoding)
+            self._reader = self._reader_class(self._connection_file, encoding = self._encoding)
 
 
     def _init_socket(self):
@@ -152,14 +153,18 @@ class QConnection(object):
             self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._connection.connect((self.host, self.port))
             self._connection.settimeout(self.timeout)
+            self._connection_file = self._connection.makefile('b')
         except:
             self._connection = None
+            self._connection_file = None
             raise
 
 
     def close(self):
         '''Closes connection with the q service.'''
         if self._connection:
+            self._connection_file.close()
+            self._connection_file = None
             self._connection.close()
             self._connection = None
 
