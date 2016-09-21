@@ -1,18 +1,18 @@
-# 
+#
 #  Copyright (c) 2011-2014 Exxeleron GmbH
-# 
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
 
 import binascii
 import sys
@@ -121,7 +121,7 @@ EXPRESSIONS = OrderedDict((
                    (b'0Nn',                                           (qtemporal(qnull(QTIMESPAN), qtype=QTIMESPAN),
                                                                       qtemporal(numpy.timedelta64('NaT', 'ns'), qtype=QTIMESPAN),
                                                                       numpy.timedelta64('NaT', 'ns'))),
-                  
+
                    (b'::',                                            None),
                    (b'1+`',                                           QException('type')),
                    (b'1',                                             numpy.int64(1)),
@@ -130,7 +130,7 @@ EXPRESSIONS = OrderedDict((
                    (b'0b',                                            numpy.bool_(False)),
                    (b'1b',                                            numpy.bool_(True)),
                    (b'0x2a',                                          numpy.byte(0x2a)),
-                   (b'89421099511627575j',                            numpy.int64(long(89421099511627575))),   
+                   (b'89421099511627575j',                            numpy.int64(long(89421099511627575))),
                    (b'5.5e',                                          numpy.float32(5.5)),
                    (b'3.234',                                         numpy.float64(3.234)),
                    (b'"0"',                                           '0'),
@@ -149,39 +149,39 @@ EXPRESSIONS = OrderedDict((
                    (b'`',                                             qnull(QSYMBOL)),
                    (b'0Ng',                                           qnull(QGUID)),
                    (b'()',                                            []),
-                   (b'(0b;1b;0b)',                                    (numpy.array([False, True, False], dtype=numpy.bool_), 
+                   (b'(0b;1b;0b)',                                    (numpy.array([False, True, False], dtype=numpy.bool_),
                                                                       qlist(numpy.array([False, True, False]), qtype = QBOOL_LIST),
                                                                       qlist([False, True, False], qtype = QBOOL_LIST))),
-                   (b'(0x01;0x02;0xff)',                              (numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte), 
+                   (b'(0x01;0x02;0xff)',                              (numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte),
                                                                       qlist(numpy.array([0x01, 0x02, 0xff], dtype=numpy.byte), qtype = QBYTE_LIST),
                                                                       qlist(numpy.array([0x01, 0x02, 0xff]), qtype = QBYTE_LIST),
                                                                       qlist([0x01, 0x02, 0xff], qtype = QBYTE_LIST))),
-                   (b'(1h;2h;3h)',                                    (numpy.array([1, 2, 3], dtype=numpy.int16), 
+                   (b'(1h;2h;3h)',                                    (numpy.array([1, 2, 3], dtype=numpy.int16),
                                                                       qlist(numpy.array([1, 2, 3], dtype=numpy.int16), qtype = QSHORT_LIST),
                                                                       qlist(numpy.array([1, 2, 3]), qtype = QSHORT_LIST),
                                                                       qlist([1, 2, 3], qtype = QSHORT_LIST))),
                    (b'(1h;0Nh;3h)',                                   qlist(numpy.array([1, qnull(QSHORT), 3], dtype=numpy.int16), qtype=QSHORT_LIST)),
-                   (b'1 2 3',                                         (numpy.array([1, 2, 3], dtype=numpy.int64), 
+                   (b'1 2 3',                                         (numpy.array([1, 2, 3], dtype=numpy.int64),
                                                                       qlist(numpy.array([1, 2, 3], dtype=numpy.int64), qtype = QLONG_LIST),
                                                                       qlist(numpy.array([1, 2, 3]), qtype = QLONG_LIST),
                                                                       qlist([1, 2, 3], qtype = QLONG_LIST))),
                    (b'1 0N 3',                                        qlist(numpy.array([1, qnull(QLONG), 3], dtype=numpy.int64), qtype=QLONG_LIST)),
-                   (b'(1i;2i;3i)',                                    (numpy.array([1, 2, 3], dtype=numpy.int32), 
+                   (b'(1i;2i;3i)',                                    (numpy.array([1, 2, 3], dtype=numpy.int32),
                                                                       qlist(numpy.array([1, 2, 3], dtype=numpy.int32), qtype = QINT_LIST),
                                                                       qlist(numpy.array([1, 2, 3]), qtype = QINT_LIST),
                                                                       qlist([1, 2, 3], qtype = QINT_LIST))),
                    (b'(1i;0Ni;3i)',                                   qlist(numpy.array([1, qnull(QINT), 3], dtype=numpy.int32), qtype=QINT_LIST)),
-                   (b'(1j;2j;3j)',                                    (numpy.array([1, 2, 3], dtype=numpy.int64), 
+                   (b'(1j;2j;3j)',                                    (numpy.array([1, 2, 3], dtype=numpy.int64),
                                                                       qlist(numpy.array([1, 2, 3], dtype=numpy.int64), qtype = QLONG_LIST),
                                                                       qlist(numpy.array([1, 2, 3]), qtype = QLONG_LIST),
                                                                       qlist([1, 2, 3], qtype = QLONG_LIST))),
                    (b'(1j;0Nj;3j)',                                   qlist(numpy.array([1, qnull(QLONG), 3], dtype=numpy.int64), qtype=QLONG_LIST)),
-                   (b'(5.5e; 8.5e)',                                  (numpy.array([5.5, 8.5], dtype=numpy.float32), 
+                   (b'(5.5e; 8.5e)',                                  (numpy.array([5.5, 8.5], dtype=numpy.float32),
                                                                       qlist(numpy.array([5.5, 8.5], dtype=numpy.float32), qtype = QFLOAT_LIST),
                                                                       qlist(numpy.array([5.5, 8.5]), qtype = QFLOAT_LIST),
                                                                       qlist([5.5, 8.5], qtype = QFLOAT_LIST))),
                    (b'(5.5e; 0Ne)',                                   qlist(numpy.array([5.5, qnull(QFLOAT)], dtype=numpy.float32), qtype=QFLOAT_LIST)),
-                   (b'3.23 6.46',                                     (numpy.array([3.23, 6.46], dtype=numpy.float64), 
+                   (b'3.23 6.46',                                     (numpy.array([3.23, 6.46], dtype=numpy.float64),
                                                                       qlist(numpy.array([3.23, 6.46], dtype=numpy.float64), qtype = QDOUBLE_LIST),
                                                                       qlist(numpy.array([3.23, 6.46]), qtype = QDOUBLE_LIST),
                                                                       qlist([3.23, 6.46], qtype = QDOUBLE_LIST))),
@@ -190,8 +190,8 @@ EXPRESSIONS = OrderedDict((
                    (b'(42;::;`foo)',                                  [numpy.int64(42), None, numpy.string_('foo')]),
                    (b'(1;2h;3.234;"4")',                              [numpy.int64(1), numpy.int16(2), numpy.float64(3.234), '4']),
                    (b'(`one;2 3;"456";(7;8 9))',                      [numpy.string_('one'), qlist(numpy.array([2, 3], dtype=numpy.int64), qtype=QLONG_LIST), '456', [numpy.int64(7), qlist(numpy.array([8, 9], dtype=numpy.int64), qtype=QLONG_LIST)]]),
-                   
-                   (b'`jumps`over`a`lazy`dog',                        (numpy.array(['jumps', 'over', 'a', 'lazy', 'dog'], dtype=numpy.string_), 
+
+                   (b'`jumps`over`a`lazy`dog',                        (numpy.array(['jumps', 'over', 'a', 'lazy', 'dog'], dtype=numpy.string_),
                                                                       qlist(numpy.array(['jumps', 'over', 'a', 'lazy', 'dog']), qtype = QSYMBOL_LIST),
                                                                       qlist(['jumps', 'over', 'a', 'lazy', 'dog'], qtype = QSYMBOL_LIST))),
                    (b'`the`quick`brown`fox',                          numpy.array([numpy.string_('the'), numpy.string_('quick'), numpy.string_('brown'), numpy.string_('fox')], dtype=numpy.object)),
@@ -203,18 +203,18 @@ EXPRESSIONS = OrderedDict((
                                                                       qlist(['quick', 'brown', 'fox', 'jumps', 'over', 'a lazy', 'dog'], qtype = QSTRING_LIST))),
                    (b'{x+y}',                                         QLambda('{x+y}')),
                    (b'{x+y}[3]',                                      QProjection([QLambda('{x+y}'), numpy.int64(3)])),
-                   
-                   (b'(enlist `a)!(enlist 1)',                        (QDictionary(qlist(numpy.array(['a']), qtype = QSYMBOL_LIST), 
+
+                   (b'(enlist `a)!(enlist 1)',                        (QDictionary(qlist(numpy.array(['a']), qtype = QSYMBOL_LIST),
                                                                                   qlist(numpy.array([1], dtype=numpy.int64), qtype=QLONG_LIST)),
-                                                                      QDictionary(qlist(numpy.array(['a']), qtype = QSYMBOL_LIST), 
+                                                                      QDictionary(qlist(numpy.array(['a']), qtype = QSYMBOL_LIST),
                                                                                   qlist(numpy.array([1]), qtype=QLONG_LIST)))),
                    (b'1 2!`abc`cdefgh',                               QDictionary(qlist(numpy.array([1, 2], dtype=numpy.int64), qtype=QLONG_LIST),
                                                                                  qlist(numpy.array(['abc', 'cdefgh']), qtype = QSYMBOL_LIST))),
                    (b'`abc`def`gh!([] one: 1 2 3; two: 4 5 6)',       QDictionary(qlist(numpy.array(['abc', 'def', 'gh']), qtype = QSYMBOL_LIST),
-                                                                                 qtable(qlist(numpy.array(['one', 'two']), qtype = QSYMBOL_LIST), 
-                                                                                        [qlist(numpy.array([1, 2, 3]), qtype = QLONG_LIST), 
+                                                                                 qtable(qlist(numpy.array(['one', 'two']), qtype = QSYMBOL_LIST),
+                                                                                        [qlist(numpy.array([1, 2, 3]), qtype = QLONG_LIST),
                                                                                          qlist(numpy.array([4, 5, 6]), qtype = QLONG_LIST)]))),
-                   (b'(`x`y!(`a;2))',                                 QDictionary(qlist(numpy.array(['x', 'y']), qtype = QSYMBOL_LIST), 
+                   (b'(`x`y!(`a;2))',                                 QDictionary(qlist(numpy.array(['x', 'y']), qtype = QSYMBOL_LIST),
                                                                                  [numpy.string_('a'), numpy.int64(2)])),
                    (b'(0 1; 2 3)!`first`second',                      QDictionary([qlist(numpy.array([0, 1], dtype=numpy.int64), qtype=QLONG_LIST), qlist(numpy.array([2, 3], dtype=numpy.int64), qtype=QLONG_LIST)],
                                                                                   qlist(numpy.array(['first', 'second']), qtype = QSYMBOL_LIST))),
@@ -222,58 +222,58 @@ EXPRESSIONS = OrderedDict((
                                                                                  [numpy.string_('one'), qlist(numpy.array([2, 3], dtype=numpy.int64), qtype=QLONG_LIST), '456', [numpy.int64(7), qlist(numpy.array([8, 9], dtype=numpy.int64), qtype=QLONG_LIST)]])),
                    (b'`A`B`C!((1;3.234;3);(`x`y!(`a;2));5.5e)',       QDictionary(qlist(numpy.array(['A', 'B', 'C']), qtype = QSYMBOL_LIST),
                                                                                  [[numpy.int64(1), numpy.float64(3.234), numpy.int64(3)], QDictionary(qlist(numpy.array(['x', 'y']), qtype = QSYMBOL_LIST), [numpy.string_('a'), numpy.int64(2)]), numpy.float32(5.5)])),
-                   
-                   (b'flip `abc`def!(1 2 3; 4 5 6)',                  (qtable(qlist(numpy.array(['abc', 'def']), qtype = QSYMBOL_LIST), 
-                                                                            [qlist(numpy.array([1, 2, 3], dtype=numpy.int64), qtype=QLONG_LIST), 
-                                                                             qlist(numpy.array([4, 5, 6], dtype=numpy.int64), qtype=QLONG_LIST)], 
+
+                   (b'flip `abc`def!(1 2 3; 4 5 6)',                  (qtable(qlist(numpy.array(['abc', 'def']), qtype = QSYMBOL_LIST),
+                                                                            [qlist(numpy.array([1, 2, 3], dtype=numpy.int64), qtype=QLONG_LIST),
+                                                                             qlist(numpy.array([4, 5, 6], dtype=numpy.int64), qtype=QLONG_LIST)],
                                                                             qtype=QTABLE),
-                                                                      qtable(qlist(numpy.array(['abc', 'def']), qtype = QSYMBOL_LIST), 
-                                                                             [qlist(numpy.array([1, 2, 3]), qtype = QLONG_LIST), 
+                                                                      qtable(qlist(numpy.array(['abc', 'def']), qtype = QSYMBOL_LIST),
+                                                                             [qlist(numpy.array([1, 2, 3]), qtype = QLONG_LIST),
                                                                               qlist(numpy.array([4, 5, 6]), qtype = QLONG_LIST)]),
-                                                                      qtable(qlist(['abc', 'def'], qtype = QSYMBOL_LIST), 
-                                                                             [qlist([1, 2, 3], qtype = QLONG_LIST), 
+                                                                      qtable(qlist(['abc', 'def'], qtype = QSYMBOL_LIST),
+                                                                             [qlist([1, 2, 3], qtype = QLONG_LIST),
                                                                               qlist([4, 5, 6], qtype = QLONG_LIST)]),
-                                                                      qtable(qlist(['abc', 'def'], qtype = QSYMBOL_LIST), 
+                                                                      qtable(qlist(['abc', 'def'], qtype = QSYMBOL_LIST),
                                                                              [qlist([1, 2, 3]), qlist([4, 5, 6])],
                                                                              **{'abc': QLONG_LIST, 'def': QLONG_LIST}),
-                                                                      qtable(['abc', 'def'], 
+                                                                      qtable(['abc', 'def'],
                                                                              [[1, 2, 3], [4, 5, 6]],
                                                                              **{'abc': QLONG, 'def': QLONG}))),
                    (b'flip `name`iq!(`Dent`Beeblebrox`Prefect;98 42 126)',
                                                                      (qtable(qlist(numpy.array(['name', 'iq']), qtype = QSYMBOL_LIST),
-                                                                            [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST), 
+                                                                            [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST),
                                                                              qlist(numpy.array([98, 42, 126], dtype=numpy.int64), qtype = QLONG_LIST)]),
                                                                       qtable(qlist(numpy.array(['name', 'iq']), qtype = QSYMBOL_LIST),
-                                                                             [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST), 
+                                                                             [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST),
                                                                               qlist(numpy.array([98, 42, 126]), qtype = QLONG_LIST)]),
                                                                       qtable(qlist(['name', 'iq'], qtype = QSYMBOL_LIST),
-                                                                             [qlist(['Dent', 'Beeblebrox', 'Prefect'], qtype = QSYMBOL_LIST), 
+                                                                             [qlist(['Dent', 'Beeblebrox', 'Prefect'], qtype = QSYMBOL_LIST),
                                                                               qlist([98, 42, 126], qtype = QLONG_LIST)]),
                                                                       qtable(qlist(['name', 'iq'], qtype = QSYMBOL_LIST),
-                                                                             [qlist(['Dent', 'Beeblebrox', 'Prefect']), 
+                                                                             [qlist(['Dent', 'Beeblebrox', 'Prefect']),
                                                                               qlist([98, 42, 126])],
                                                                              name = QSYMBOL, iq = QLONG),
                                                                       qtable(['name', 'iq'],
-                                                                             [['Dent', 'Beeblebrox', 'Prefect'], 
+                                                                             [['Dent', 'Beeblebrox', 'Prefect'],
                                                                               [98, 42, 126]],
                                                                              name = QSYMBOL, iq = QLONG),
                                                                       qtable(['name', 'iq'],
-                                                                             [['Dent', 'Beeblebrox', 'Prefect'], 
+                                                                             [['Dent', 'Beeblebrox', 'Prefect'],
                                                                               [98, 42, 126]],
                                                                              **{'name': QSYMBOL, 'iq': QLONG}))),
                    (b'flip `name`iq`grade!(`Dent`Beeblebrox`Prefect;98 42 126;"a c")',
                                                                       qtable(qlist(numpy.array(['name', 'iq', 'grade']), qtype = QSYMBOL_LIST),
-                                                                             [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST), 
+                                                                             [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST),
                                                                               qlist(numpy.array([98, 42, 126]), qtype = QLONG_LIST),
                                                                               "a c"])),
                    (b'flip `name`iq`fullname!(`Dent`Beeblebrox`Prefect;98 42 126;("Arthur Dent"; "Zaphod Beeblebrox"; "Ford Prefect"))',
                                                                        qtable(qlist(numpy.array(['name', 'iq', 'fullname']), qtype = QSYMBOL_LIST),
-                                                                              [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST), 
+                                                                              [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST),
                                                                                qlist(numpy.array([98, 42, 126]), qtype = QLONG_LIST),
                                                                                qlist(numpy.array(["Arthur Dent", "Zaphod Beeblebrox", "Ford Prefect"]), qtype = QSTRING_LIST)])),
                    (b'flip `name`iq`misc!(`Dent`Beeblebrox`Prefect;98 42 126;("The Hitch Hiker\'s Guide to the Galaxy"; 160; 1979.10.12))',
                                                                        qtable(qlist(numpy.array(['name', 'iq', 'misc']), qtype = QSYMBOL_LIST),
-                                                                              [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST), 
+                                                                              [qlist(numpy.array(['Dent', 'Beeblebrox', 'Prefect']), qtype = QSYMBOL_LIST),
                                                                                qlist(numpy.array([98, 42, 126]), qtype = QLONG_LIST),
                                                                                qlist(numpy.array(["The Hitch Hiker\'s Guide to the Galaxy", long(160), qtemporal(numpy.datetime64('1979-10-12', 'D'), qtype=QDATE)]), qtype = QGENERAL_LIST)])),
                    (b'([] sc:1 2 3; nsc:(1 2; 3 4; 5 6 7))',          (qtable(qlist(numpy.array(['sc', 'nsc']), qtype = QSYMBOL_LIST),
@@ -296,28 +296,44 @@ EXPRESSIONS = OrderedDict((
                                                                               [qlist(numpy.array([1, 2]), qtype = QLONG_LIST),
                                                                                qlist(numpy.array([3, 4]), qtype = QLONG_LIST),
                                                                                qlist(numpy.array([5, 6]), qtype = QLONG_LIST)]])),
+                   (b'1#([] sym:`x`x`x;str:"  a")',                   {'data': qtable(qlist(numpy.array(['sym', 'str']), qtype = QSYMBOL_LIST),
+                                                                                     [qlist(numpy.array(['x'], dtype=numpy.string_), qtype = QSYMBOL_LIST),
+                                                                                      b" "]),
+                                                                       'single_char_strings': True
+                                                                       }),
+                   (b'-1#([] sym:`x`x`x;str:"  a")',                  {'data': qtable(qlist(numpy.array(['sym', 'str']), qtype = QSYMBOL_LIST),
+                                                                                     [qlist(numpy.array(['x'], dtype=numpy.string_), qtype = QSYMBOL_LIST),
+                                                                                      b"a"]),
+                                                                       'single_char_strings': True
+                                                                       }),
+                   (b'2#([] sym:`x`x`x`x;str:"  aa")',                qtable(qlist(numpy.array(['sym', 'str']), qtype = QSYMBOL_LIST),
+                                                                            [qlist(numpy.array(['x', 'x'], dtype=numpy.string_), qtype = QSYMBOL_LIST),
+                                                                             b"  "])),
+                   (b'-2#([] sym:`x`x`x`x;str:"  aa")',               qtable(qlist(numpy.array(['sym', 'str']), qtype = QSYMBOL_LIST),
+                                                                            [qlist(numpy.array(['x', 'x'], dtype=numpy.string_), qtype = QSYMBOL_LIST),
+                                                                             b"aa"])),
                    (b'([] name:`symbol$(); iq:`int$())',              (qtable(qlist(numpy.array(['name', 'iq']), qtype = QSYMBOL_LIST),
-                                                                            [qlist(numpy.array([], dtype=numpy.string_), qtype = QSYMBOL_LIST), 
-                                                                             qlist(numpy.array([], dtype=numpy.int32), qtype = QINT_LIST)]), 
+                                                                            [qlist(numpy.array([], dtype=numpy.string_), qtype = QSYMBOL_LIST),
+                                                                             qlist(numpy.array([], dtype=numpy.int32), qtype = QINT_LIST)]),
                                                                       qtable(qlist(numpy.array(['name', 'iq']), qtype = QSYMBOL_LIST),
-                                                                            [qlist(numpy.array([]), qtype = QSYMBOL_LIST), 
+                                                                            [qlist(numpy.array([]), qtype = QSYMBOL_LIST),
                                                                              qlist(numpy.array([]), qtype = QINT_LIST)]),
                                                                       qtable(qlist(['name', 'iq'], qtype = QSYMBOL_LIST),
-                                                                            [qlist([], qtype = QSYMBOL_LIST), 
+                                                                            [qlist([], qtype = QSYMBOL_LIST),
                                                                              qlist([], qtype = QINT_LIST)]))),
-                   (b'([] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))', 
+                   (b'([] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))',
                                                                      (qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
-                                                                            [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
+                                                                            [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST),
                                                                              qlist(numpy.array([366, 121, qnull(QDATE)]), qtype=QDATE_LIST)]),
                                                                       qtable(['pos', 'dates'],
-                                                                            [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
+                                                                            [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST),
                                                                              numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]')])
                                                                       )),
                    (b'([eid:1001 1002 1003] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))',
                                                                       QKeyedTable(qtable(qlist(numpy.array(['eid']), qtype = QSYMBOL_LIST),
                                                                                          [qlist(numpy.array([1001, 1002, 1003]), qtype = QLONG_LIST)]),
                                                                                   qtable(qlist(numpy.array(['pos', 'dates']), qtype = QSYMBOL_LIST),
-                                                                                         [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST), 
+                                                                                         [qlist(numpy.array(['d1', 'd2', 'd3']), qtype = QSYMBOL_LIST),
                                                                                           qlist(numpy.array([366, 121, qnull(QDATE)]), qtype = QDATE_LIST)]))
                                                                       ),
                 ))
@@ -347,6 +363,11 @@ def test_writing():
                 sys.stdout.write( '.' )
                 serialized = binascii.hexlify(w.write(obj, 1))[16:].lower()
                 assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
+        elif isinstance(value, dict):
+            sys.stdout.write( '.' )
+            single_char_strings = value['single_char_strings'] if 'single_char_strings' in value else False
+            serialized = binascii.hexlify(w.write(value['data'], 1, single_char_strings = single_char_strings))[16:].lower()
+            assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (query,  BINARY[query].lower(), serialized)
         else:
             sys.stdout.write( '.' )
             serialized = binascii.hexlify(w.write(value, 1))[16:].lower()
@@ -356,7 +377,7 @@ def test_writing():
 
 def test_write_single_char_string():
     w = qwriter.QWriter(None, 3)
-    
+
     for obj in (['one', 'two', '3'], qlist(['one', 'two', '3'], qtype = QSTRING_LIST)):
         single_char_strings = False
         for query in (b'("one"; "two"; "3")', b'("one"; "two"; enlist "3")'):
