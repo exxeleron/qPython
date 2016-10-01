@@ -167,7 +167,7 @@ class QReader(object):
         # skip 1 byte
         self._buffer.skip()
 
-        message_size = self._buffer.get_int()
+        message_size = self._buffer.get_uint()
         return QMessage(None, message_type, message_size, message_compressed)
 
 
@@ -384,8 +384,28 @@ class QReader(object):
 
         if length == 0:
             return b''
-        else:
+        if length <= sys.maxint:
             data = self._stream.read(length)
+        else:
+            try:
+                from cStringIO import StringIO
+            except:
+                from StringIO import StringIO
+
+            # for large messages, read from the stream in chunks
+            remaining = length
+            buff = StringIO()
+
+            while remaining > 0:
+                chunk = self._stream.read(min(remaining, 2048))
+
+                if chunk:
+                    remaining = remaining - len(chunk)
+                    buff.write(chunk)
+                else:
+                    break
+
+            data = buff.getvalue()
 
         if len(data) == 0:
             raise QReaderException('Error while reading data')
@@ -489,6 +509,15 @@ class QReader(object):
             :returns: single byte
             '''
             return self.get('b')
+
+
+        def get_uint(self):
+            '''
+            Gets a single unsigned 32-bit integer from the buffer.
+
+            :returns: single unsigned integer
+            '''
+            return self.get('I')
 
 
         def get_int(self):
