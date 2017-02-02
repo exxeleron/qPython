@@ -72,7 +72,8 @@ class PandasQReader(QReader):
             self._buffer.skip()  # ignore dict type stamp
 
             columns = self._read_object()
-            data = self._read_object()
+            self._buffer.skip() # ignore generic list type indicator
+            data = QReader._read_general_list(self, qtype)
 
             odict = OrderedDict()
             meta = MetaData(qtype = QTABLE)

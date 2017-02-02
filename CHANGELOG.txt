@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------------
+  qPython 1.2.2 [2016.09.21]
+------------------------------------------------------------------------------
+
+  - Fix: Pandas deserialization of single row tables with string nulls
+
+------------------------------------------------------------------------------
   qPython 1.2.1 [2016.03.29]
 ------------------------------------------------------------------------------
 
@@ -32,13 +38,13 @@
   qPython 1.0.0 [2015.04.10]
 ------------------------------------------------------------------------------
 
-  - Improve type detection for pandas.Series serialization 
+  - Improve type detection for pandas.Series serialization
 
 ------------------------------------------------------------------------------
   qPython 1.0 RC3 [2015.04.09]
 ------------------------------------------------------------------------------
 
-  - Fix: bug during handshake with blank username/password 
+  - Fix: bug during handshake with blank username/password
 
 ------------------------------------------------------------------------------
   qPython 1.0 RC2 [2015.01.19]
@@ -58,7 +64,7 @@
 ------------------------------------------------------------------------------
 
   - Configurable deserialization for temporal vectors
-  - numpy datetime64/timedelta64 vectors ans atoms are now serializable without 
+  - numpy datetime64/timedelta64 vectors ans atoms are now serializable without
     explicit conversions
   - QTemporal: null values are now backed as numpy NaT
   - Fix: error handling while initializing connection
@@ -79,7 +85,7 @@
   qPython 1.0 Beta 4 [2014.07.04]
 ------------------------------------------------------------------------------
 
-  - qtemporallist: force numpy.array type conversion in case of mismatch between 
+  - qtemporallist: force numpy.array type conversion in case of mismatch between
     meta.qtype and dtype of raw list
   - Enable Travis CI integration
   - Update project meta-information

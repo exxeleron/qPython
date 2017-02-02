@@ -34,7 +34,7 @@ from qpython.qtemporal import QTemporal
 try:
     import pandas
     BINARY = None
-    
+
     PANDAS_EXPRESSIONS = OrderedDict((
                      (b'("G"$"8c680a01-5a49-5aab-5a65-d4bfddb6a661"; 0Ng)',
                                                                      {'data': pandas.Series(numpy.array([uuid.UUID('8c680a01-5a49-5aab-5a65-d4bfddb6a661'), numpy.nan])),
@@ -49,7 +49,7 @@ try:
                                                                        [b'quick', b'brown', b'fox', b'jumps', b'over', b'a lazy', b'dog']),
                      (b'("quick"; " "; "fox"; "jumps"; "over"; "a lazy"; "dog")',
                                                                        [b'quick', numpy.nan, b'fox', b'jumps', b'over', b'a lazy', b'dog']),
-  
+
                      (b'(0b;1b;0b)',                                  {'data': pandas.Series(numpy.array([False, True, False], dtype = numpy.bool)),
                                                                       'meta': MetaData(qtype = QBOOL_LIST) }),
                      (b'(0x01;0x02;0xff)',                            {'data': pandas.Series(numpy.array([1, 2, 0xff], dtype = numpy.int8)),
@@ -78,7 +78,7 @@ try:
                                                                       'meta': MetaData(qtype = QDOUBLE_LIST) }),
                      (b'3.23 0n',                                     {'data': pandas.Series(numpy.array([3.23, numpy.nan])),
                                                                       'meta': MetaData(qtype = QDOUBLE_LIST) }),
-   
+
                      (b'(2001.01m; 0Nm)',                             {'data': pandas.Series(numpy.array([numpy.datetime64('2001-01'), numpy.datetime64('NaT')], dtype='datetime64[M]')),
                                                                       'meta': MetaData(qtype = QMONTH_LIST) }),
                      (b'2001.01.01 2000.05.01 0Nd',                   {'data': pandas.Series(numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]')),
@@ -95,7 +95,7 @@ try:
                                                                       'meta': MetaData(qtype = QTIMESTAMP_LIST) }),
                      (b'0D05:36:57.600 0Nn',                          {'data': pandas.Series(numpy.array([numpy.timedelta64(20217600000000, 'ns'), numpy.timedelta64('nat', 'ns')])),
                                                                       'meta': MetaData(qtype = QTIMESPAN_LIST) }),
-                                       
+
                      (b'1 2!`abc`cdefgh',                             QDictionary(qlist(numpy.array([1, 2], dtype=numpy.int64), qtype=QLONG_LIST),
                                                                                  qlist(numpy.array(['abc', 'cdefgh']), qtype = QSYMBOL_LIST))),
                      (b'(0 1; 2 3)!`first`second',                    QDictionary([qlist(numpy.array([0, 1], dtype=numpy.int64), qtype=QLONG_LIST), qlist(numpy.array([2, 3], dtype=numpy.int64), qtype=QLONG_LIST)],
@@ -121,6 +121,32 @@ try:
                                                                                                              ))
                                                                                                ),
                                                                       'meta': MetaData(**{'qtype': QTABLE, 'name': QSYMBOL_LIST, 'iq': QLONG_LIST, 'grade': QSTRING}) }),
+                     (b'1#([] sym:`x`x`x;str:"  a")',
+                                                                     {'data': pandas.DataFrame(OrderedDict((('sym', pandas.Series(['x'], dtype = numpy.string_)),
+                                                                                                            ('str', pandas.Series([' '], dtype = numpy.str).replace(b' ', numpy.nan)),
+                                                                                                             ))
+                                                                                               ),
+                                                                      'meta': MetaData(**{'qtype': QTABLE, 'sym': QSYMBOL_LIST, 'str': QSTRING}),
+                                                                      'single_char_strings': True}),
+                     (b'-1#([] sym:`x`x`x;str:"  a")',
+                                                                     {'data': pandas.DataFrame(OrderedDict((('sym', pandas.Series(['x'], dtype = numpy.string_)),
+                                                                                                            ('str', pandas.Series(['a'], dtype = numpy.str)),
+                                                                                                             ))
+                                                                                               ),
+                                                                      'meta': MetaData(**{'qtype': QTABLE, 'sym': QSYMBOL_LIST, 'str': QSTRING}),
+                                                                      'single_char_strings': True}),
+                     (b'2#([] sym:`x`x`x`x;str:"  aa")',
+                                                                     {'data': pandas.DataFrame(OrderedDict((('sym', pandas.Series(['x', 'x'], dtype = numpy.string_)),
+                                                                                                            ('str', pandas.Series([' ', ' '], dtype = numpy.str).replace(b' ', numpy.nan)),
+                                                                                                             ))
+                                                                                               ),
+                                                                      'meta': MetaData(**{'qtype': QTABLE, 'sym': QSYMBOL_LIST, 'str': QSTRING})}),
+                     (b'-2#([] sym:`x`x`x`x;str:"  aa")',
+                                                                     {'data': pandas.DataFrame(OrderedDict((('sym', pandas.Series(['x', 'x'], dtype = numpy.string_)),
+                                                                                                            ('str', pandas.Series(['a', 'a'], dtype = numpy.str).replace(b' ', numpy.nan)),
+                                                                                                             ))
+                                                                                               ),
+                                                                      'meta': MetaData(**{'qtype': QTABLE, 'sym': QSYMBOL_LIST, 'str': QSTRING})}),
                      (b'flip `name`iq`fullname!(`Dent`Beeblebrox`Prefect;98 42 126;("Arthur Dent"; "Zaphod Beeblebrox"; "Ford Prefect"))',
                                                                      {'data': pandas.DataFrame(OrderedDict((('name', pandas.Series(['Dent', 'Beeblebrox', 'Prefect'], dtype = numpy.string_)),
                                                                                                             ('iq', pandas.Series(numpy.array([98, 42, 126], dtype = numpy.int64))),
@@ -147,7 +173,6 @@ try:
                                                                                                             ('iq', pandas.Series(numpy.array([], dtype = numpy.int32)))))
                                                                                                ),
                                                                       'meta': MetaData(**{'qtype': QTABLE, 'name': QSYMBOL_LIST, 'iq': QINT_LIST}) }),
-                      
                      (b'([] pos:`d1`d2`d3;dates:(2001.01.01;2000.05.01;0Nd))',
                                                                      {'data': pandas.DataFrame(OrderedDict((('pos', pandas.Series(numpy.array(['d1', 'd2', 'd3'], dtype = numpy.string_))),
                                                                                                             ('dates', pandas.Series(numpy.array([numpy.datetime64('2001-01-01'), numpy.datetime64('2000-05-01'), numpy.datetime64('NaT')], dtype='datetime64[D]')))))
@@ -276,15 +301,18 @@ try:
 
         for query, value in iter(PANDAS_EXPRESSIONS.items()):
             sys.stdout.write( '%-75s' % query )
+            single_char_strings = False
             if isinstance(value, dict):
                 data = value['data']
                 if 'index' in value:
                     data = data.reset_index(drop = True)
                     data = data.set_index(value['index'])
+                if 'single_char_strings' in value:
+                    single_char_strings = value['single_char_strings']
                 data.meta = value['meta']
             else:
                 data = value
-            serialized = binascii.hexlify(w.write(data, 1))[16:].lower()
+            serialized = binascii.hexlify(w.write(data, 1, single_char_strings = single_char_strings))[16:].lower()
             assert serialized == BINARY[query].lower(), 'serialization failed: %s, expected: %s actual: %s' % (value,  BINARY[query].lower(), serialized)
             sys.stdout.write( '.' )
 
@@ -312,8 +340,3 @@ try:
     test_writing_pandas()
 except ImportError:
     pandas = None
-
-
-
-
-
