@@ -62,7 +62,7 @@ class QConnection(object):
      - `username` (`string` or `None`) - username for q authentication/authorization
      - `password` (`string` or `None`) - password for q authentication/authorization
      - `timeout` (`nonnegative float` or `None`) - set a timeout on blocking socket operations
-     - `connectionTimeout` (`nonnegative float` or `None`) - set a timeout for the initial connection setup (similar to hopen (`host:port;<timeout)
+     - `connectionTimeout` (`nonnegative float` or `None`) - set a timeout for the initial connection setup (similar to hopen (`host:port;<timeout)) if timeout is not set
      - `encoding` (`string`) - string encoding for data deserialization
      - `reader_class` (subclass of `QReader`) - data deserializer
      - `writer_class` (subclass of `QWriter`) - data serializer
@@ -90,7 +90,7 @@ class QConnection(object):
         self._protocol_version = None
 
         self.timeout = timeout
-        self.connectionTimeout = connectionTimeout
+        self.connectionTimeout = connectionTimeout if timeout is None else timeout
 
         self._encoding = encoding
 
