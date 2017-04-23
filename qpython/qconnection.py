@@ -62,6 +62,7 @@ class QConnection(object):
      - `username` (`string` or `None`) - username for q authentication/authorization
      - `password` (`string` or `None`) - password for q authentication/authorization
      - `timeout` (`nonnegative float` or `None`) - set a timeout on blocking socket operations
+     - `connectionTimeout` (`nonnegative float` or `None`) - set a timeout for the initial connection setup (similar to hopen (`host:port;<timeout)) if timeout is not set
      - `encoding` (`string`) - string encoding for data deserialization
      - `reader_class` (subclass of `QReader`) - data deserializer
      - `writer_class` (subclass of `QWriter`) - data serializer
@@ -78,7 +79,7 @@ class QConnection(object):
     '''
 
 
-    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', reader_class = None, writer_class = None, **options):
+    def __init__(self, host, port, username = None, password = None, timeout = None, connectionTimeout = None, encoding = 'latin-1', reader_class = None, writer_class = None, **options):
         self.host = host
         self.port = port
         self.username = username
@@ -89,6 +90,7 @@ class QConnection(object):
         self._protocol_version = None
 
         self.timeout = timeout
+        self.connectionTimeout = connectionTimeout if timeout is None else timeout
 
         self._encoding = encoding
 
@@ -142,6 +144,7 @@ class QConnection(object):
 
             self._init_socket()
             self._initialize()
+            self._connection.settimeout(self.timeout)
 
             self._writer = self._writer_class(self._connection, protocol_version = self._protocol_version, encoding = self._encoding)
             self._reader = self._reader_class(self._connection_file, encoding = self._encoding)
@@ -150,9 +153,8 @@ class QConnection(object):
     def _init_socket(self):
         '''Initialises the socket used for communicating with a q service,'''
         try:
-            self._connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._connection = socket.create_connection((self.host, self.port), self.connectionTimeout)
             self._connection.connect((self.host, self.port))
-            self._connection.settimeout(self.timeout)
             self._connection_file = self._connection.makefile('b')
         except:
             self._connection = None
@@ -184,6 +186,7 @@ class QConnection(object):
 
     def _initialize(self):
         '''Performs a IPC protocol handshake.'''
+        self._connection.settimeout(self.connectionTimeout)
         credentials = (self.username if self.username else '') + ':' + (self.password if self.password else '')
         credentials = credentials.encode(self._encoding)
         self._connection.send(credentials + b'\3\0')
@@ -192,6 +195,7 @@ class QConnection(object):
         if len(response) != 1:
             self.close()
             self._init_socket()
+            self._connection.settimeout(self.connectionTimeout)
 
             self._connection.send(credentials + b'\0')
             response = self._connection.recv(1)
