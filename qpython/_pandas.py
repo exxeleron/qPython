@@ -58,8 +58,8 @@ class PandasQReader(QReader):
 
                 return table
             else:
-                keys = keys if not isinstance(keys, pandas.Series) else keys.as_matrix()
-                values = values if not isinstance(values, pandas.Series) else values.as_matrix()
+                keys = keys if not isinstance(keys, pandas.Series) else keys.values()
+                values = values if not isinstance(values, pandas.Series) else values.values()
                 return QDictionary(keys, values)
         else:
             return QReader._read_dictionary(self, qtype = qtype)
@@ -168,19 +168,19 @@ class PandasQWriter(QWriter):
             raise QWriterException('Unable to serialize pandas series %s' % data)
 
         if qtype == QGENERAL_LIST:
-            self._write_generic_list(data.as_matrix())
+            self._write_generic_list(data.values())
         elif qtype == QCHAR:
-            self._write_string(data.replace(numpy.nan, ' ').as_matrix().astype(numpy.string_).tostring())
+            self._write_string(data.replace(numpy.nan, ' ').values().astype(numpy.string_).tostring())
         elif data.dtype.type not in (numpy.datetime64, numpy.timedelta64):
             data = data.fillna(QNULLMAP[-abs(qtype)][1])
-            data = data.as_matrix()
+            data = data.values()
 
             if PY_TYPE[qtype] != data.dtype:
                 data = data.astype(PY_TYPE[qtype])
 
             self._write_list(data, qtype = qtype)
         else:
-            data = data.as_matrix()
+            data = data.values()
             data = data.astype(TEMPORAL_Q_TYPE[qtype])
             self._write_list(data, qtype = qtype)
 
