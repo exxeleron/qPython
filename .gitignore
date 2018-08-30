@@ -55,6 +55,7 @@ dist
 # coverage
 .coverage
 __conda_version__.txt
+.pytest_cache
 
 # OS generated files #
 ######################

@@ -28,7 +28,7 @@ if sys.version > '3':
 from collections import OrderedDict
 from qpython import qreader
 from qpython.qtype import *  # @UnusedWildImport
-from qpython.qcollection import qlist, QList, QTemporalList, QDictionary, qtable, QKeyedTable
+from qpython.qcollection import qlist, QList, QTemporalList, QDictionary, qtable, QKeyedTable, QTable
 from qpython.qtemporal import qtemporal, QTemporal
 
 
@@ -278,12 +278,20 @@ def arrays_equal(left, right):
 def compare(left, right):
     if type(left) in [float, numpy.float32, numpy.float64] and numpy.isnan(left):
         return numpy.isnan(right)
+    if type(left) in [numpy.datetime64, numpy.timedelta64] and numpy.isnat(left):
+        return numpy.isnat(right)
     if type(left) == QTemporal and isinstance(left.raw, float) and numpy.isnan(left.raw):
         return numpy.isnan(right.raw)
+    elif type(left) == QTemporal and isinstance(left.raw, numpy.datetime64) and numpy.isnat(left.raw):
+        return numpy.isnat(right.raw)
+    elif type(left) == QTemporal and isinstance(left.raw, numpy.timedelta64) and numpy.isnat(left.raw):
+        return numpy.isnat(right.raw)
     elif type(left) in [list, tuple, numpy.ndarray, QList, QTemporalList]:
         return arrays_equal(left, right)
     elif type(left) == QFunction:
         return type(right) == QFunction
+    elif type(left) == QTable:
+        return left.dtype == right.dtype and all(arrays_equal(left[n],right[n]) for n in left.dtype.names)
     else:
         return left == right
 
