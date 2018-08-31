@@ -16,7 +16,7 @@ The `qPython` library provides following API methods in the
 
 - :func:`~qpython.qconnection.QConnection.sync` - executes a synchronous query 
   against the remote q service,
-- :func:`~qpython.qconnection.QConnection.async` - executes an asynchronous 
+- :func:`~qpython.qconnection.QConnection.send` - executes an asynchronous 
   query against the remote q service,
 - :func:`~qpython.qconnection.QConnection.query` - executes a query against the
   remote q service.
@@ -65,17 +65,17 @@ Asynchronous queries
 
 Calls a anonymous function with a single parameter:
         
-    >>> q.async('{til x}', 10)
+    >>> q.send('{til x}', 10)
 
 Executes a q expression:
 
-    >>> q.async('til 10')
+    >>> q.send('til 10')
 
 .. note:: The asynchronous query doesn't fetch the result. Query result has
           to be retrieved explicitly.
 
 In order to retrieve query result (for the 
-:func:`~qpython.qconnection.QConnection.async` or 
+:func:`~qpython.qconnection.QConnection.send` or 
 :func:`~qpython.qconnection.QConnection.query` methods), one has to call:
  
 - :func:`~qpython.qconnection.QConnection.receive` method, which reads next 
@@ -96,7 +96,7 @@ QMessage: message type: 2, data size: 13, is_compressed: False, data: 10
 10
 
 >>> q.sync('asynchMult:{[a;b] res:a*b; (neg .z.w)(res) }')
->>> q.async('asynchMult', 2, 3)
+>>> q.send('asynchMult', 2, 3)
 >>> print(q.receive())
 6
 
@@ -114,7 +114,7 @@ Type conversions configuration
 Type conversion options can be overwritten while:
 
 - executing synchronous query: :meth:`~qpython.qconnection.QConnection.sync`
-- executing asynchronous query: :meth:`~qpython.qconnection.QConnection.async`
+- executing asynchronous query: :meth:`~qpython.qconnection.QConnection.send`
 - retrieving data from q: :meth:`~qpython.qconnection.QConnection.receive`
 
 These methods accepts the `options` keywords arguments::

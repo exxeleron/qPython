@@ -81,7 +81,7 @@ if __name__ == '__main__':
             a = random.randint(1, 100)
             b = random.randint(1, 100)
             print('Asynchronous call with queryid=%s with arguments: %s, %s' % (x, a, b))
-            q.async('asynchMult', x, a, b);
+            q.send('asynchMult', x, a, b);
         
         time.sleep(1)
     finally:
