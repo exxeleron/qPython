@@ -306,7 +306,7 @@ class QConnection(object):
             return response.data
         else:
             self._writer.write(QException('nyi: qPython expected response message'), MessageType.ASYNC if response.type == MessageType.ASYNC else MessageType.RESPONSE)
-            raise QReaderException('Received message of type: %s where response was expected')
+            raise QReaderException('Received message of type: %s where response was expected' % response.type)
 
 
     def send(self, query, *parameters, **options):
