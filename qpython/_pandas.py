@@ -211,7 +211,10 @@ class PandasQWriter(QWriter):
 
     @serialize(tuple, list)
     def _write_generic_list(self, data):
-        self._buffer.write(struct.pack('=bxi', QGENERAL_LIST, len(data)))
-        for element in data:
-            # assume nan represents a string null
-            self._write(' ' if type(element) in [float, numpy.float32, numpy.float64] and numpy.isnan(element) else element)
+        if self._options.pandas:
+            self._buffer.write(struct.pack('=bxi', QGENERAL_LIST, len(data)))
+            for element in data:
+                # assume nan represents a string null
+                self._write(' ' if type(element) in [float, numpy.float32, numpy.float64] and numpy.isnan(element) else element)
+        else:
+            QWriter._write_generic_list(self, data)
