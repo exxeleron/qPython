@@ -29,7 +29,7 @@ sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # workaround for building docs without numpy
 import numpy
-numpy.fromstring = lambda x, dtype: [None]
+numpy.frombuffer = lambda x, dtype: [None]
 numpy.ndarray = Mock
 # end-of-workaround
 

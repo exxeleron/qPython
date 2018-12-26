@@ -370,8 +370,8 @@ Please note that q ``null`` values are defined as::
     _QNULL2 = numpy.int16(-2**15)
     _QNULL4 = numpy.int32(-2**31)
     _QNULL8 = numpy.int64(-2**63)
-    _QNAN32 = numpy.fromstring('\x00\x00\xc0\x7f', dtype=numpy.float32)[0]
-    _QNAN64 = numpy.fromstring('\x00\x00\x00\x00\x00\x00\xf8\x7f', dtype=numpy.float64)[0]
+    _QNAN32 = numpy.frombuffer('\x00\x00\xc0\x7f', dtype=numpy.float32)[0]
+    _QNAN64 = numpy.frombuffer('\x00\x00\x00\x00\x00\x00\xf8\x7f', dtype=numpy.float64)[0]
     _QNULL_BOOL = numpy.bool_(False)
     _QNULL_SYM = numpy.string_('')
     _QNULL_GUID = uuid.UUID('00000000-0000-0000-0000-000000000000')

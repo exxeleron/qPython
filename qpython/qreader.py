@@ -200,7 +200,7 @@ class QReader(object):
             uncompressed_size = -8 + self._buffer.get_int()
             compressed_data = self._read_bytes(message_size - 12) if self._stream else self._buffer.raw(message_size - 12)
 
-            raw_data = numpy.fromstring(compressed_data, dtype = numpy.uint8)
+            raw_data = numpy.frombuffer(compressed_data, dtype = numpy.uint8)
             if  uncompressed_size <= 0:
                 raise QReaderException('Error while data decompression.')
 
@@ -296,7 +296,7 @@ class QReader(object):
             return qlist(data, qtype = qtype, adjust_dtype = False)
         elif conversion:
             raw = self._buffer.raw(length * ATOM_SIZE[qtype])
-            data = numpy.fromstring(raw, dtype = conversion)
+            data = numpy.frombuffer(raw, dtype = conversion)
             if not self._is_native:
                 data.byteswap(True)
 
