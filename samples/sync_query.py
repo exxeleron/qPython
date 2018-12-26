@@ -30,8 +30,8 @@ if __name__ == '__main__':
     data = q('{`int$ til x}', 10)
     print('type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data))
 
-    # simple query execution via: QConnection.sync
-    data = q.sync('{`long$ til x}', 10)
+    # simple query execution via: QConnection.sendSync
+    data = q.sendSync('{`long$ til x}', 10)
     print('type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data))
 
     # low-level query and read

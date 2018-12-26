@@ -72,7 +72,7 @@ if __name__ == '__main__':
         # queryid - unique identifier of function call - used to identify
         # the result
         # a, b - parameters to the query
-        q.sync('asynchMult:{[queryid;a;b] res:a*b; (neg .z.w)(`queryid`result!(queryid;res)) }');
+        q.sendSync('asynchMult:{[queryid;a;b] res:a*b; (neg .z.w)(`queryid`result!(queryid;res)) }');
 
         t = ListenerThread(q)
         t.start()
@@ -81,7 +81,7 @@ if __name__ == '__main__':
             a = random.randint(1, 100)
             b = random.randint(1, 100)
             print('Asynchronous call with queryid=%s with arguments: %s, %s' % (x, a, b))
-            q.async('asynchMult', x, a, b);
+            q.sendAsync('asynchMult', x, a, b);
         
         time.sleep(1)
     finally:

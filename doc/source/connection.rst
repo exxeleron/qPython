@@ -48,8 +48,8 @@ to numpy `datetime64`/`timedelta64` representation.
 
 
 Conversion options can be also overwritten while executing 
-synchronous/asynchronous queries (:meth:`~qpython.qconnection.QConnection.sync`,
-:meth:`~qpython.qconnection.QConnection.async`) or retrieving data from q
+synchronous/asynchronous queries (:meth:`~qpython.qconnection.QConnection.sendSync`,
+:meth:`~qpython.qconnection.QConnection.sendAsync`) or retrieving data from q
 (:meth:`~qpython.qconnection.QConnection.receive`).
 
 

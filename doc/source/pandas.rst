@@ -11,7 +11,7 @@ In order to instrument `qPython` to use `pandas <http://pandas.pydata.org/>`_ da
 ``pandas`` flag while:
 
 - creating :class:`.qconnection.QConnection` instance,
-- executing synchronous query: :meth:`~qpython.qconnection.QConnection.sync`,
+- executing synchronous query: :meth:`~qpython.qconnection.QConnection.sendSync`,
 - or retrieving data from q: :meth:`~qpython.qconnection.QConnection.receive`.
 
 For example:

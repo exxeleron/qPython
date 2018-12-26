@@ -46,7 +46,7 @@ class PublisherThread(threading.Thread):
                 # publish data to tick
                 # function: .u.upd
                 # table: ask
-                self.q.sync('.u.upd', numpy.string_('ask'), self.get_ask_data())
+                self.q.sendSync('.u.upd', numpy.string_('ask'), self.get_ask_data())
 
                 time.sleep(1)
             except QException as e:

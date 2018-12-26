@@ -245,7 +245,7 @@ class QConnection(object):
             self._writer.write([query] + list(parameters), msg_type, **self._options.union_dict(**options))
 
 
-    def sync(self, query, *parameters, **options):
+    def sendSync(self, query, *parameters, **options):
         '''Performs a synchronous query against a q service and returns parsed 
         data.
         
@@ -255,23 +255,23 @@ class QConnection(object):
         
         Executes a q expression:
         
-            >>> print(q.sync('til 10'))
+            >>> print(q.sendSync('til 10'))
             [0 1 2 3 4 5 6 7 8 9]
         
         Executes an anonymous q function with a single parameter:
         
-            >>> print(q.sync('{til x}', 10))
+            >>> print(q.sendSync('{til x}', 10))
             [0 1 2 3 4 5 6 7 8 9]
             
         Executes an anonymous q function with two parameters:
         
-            >>> print(q.sync('{y + til x}', 10, 1))
+            >>> print(q.sendSync('{y + til x}', 10, 1))
             [ 1  2  3  4  5  6  7  8  9 10]
             
-            >>> print(q.sync('{y + til x}', *[10, 1]))
+            >>> print(q.sendSync('{y + til x}', *[10, 1]))
             [ 1  2  3  4  5  6  7  8  9 10]
         
-        The :func:`.sync` is called from the overloaded :func:`.__call__` 
+        The :func:`.sendSync` is called from the overloaded :func:`.__call__` 
         function. This allows :class:`.QConnection` instance to be called as 
         a function:
         
@@ -309,7 +309,7 @@ class QConnection(object):
             raise QReaderException('Received message of type: %s where response was expected')
 
 
-    def async(self, query, *parameters, **options):
+    def sendAsync(self, query, *parameters, **options):
         '''Performs an asynchronous query and returns **without** retrieving of 
         the response.
         
@@ -319,11 +319,11 @@ class QConnection(object):
         
         Calls a anonymous function with a single parameter:
         
-            >>> q.async('{til x}', 10)
+            >>> q.sendAsync('{til x}', 10)
         
         Executes a q expression:
         
-            >>> q.async('til 10')
+            >>> q.sendAsync('til 10')
         
         :Parameters:
          - `query` (`string`) - query to be executed
@@ -382,4 +382,4 @@ class QConnection(object):
 
 
     def __call__(self, *parameters, **options):
-        return self.sync(parameters[0], *parameters[1:], **options)
+        return self.sendSync(parameters[0], *parameters[1:], **options)

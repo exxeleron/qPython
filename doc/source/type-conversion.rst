@@ -125,11 +125,11 @@ apply:
 ::
           
     >>> # serialize single element strings as q characters 
-    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = False))
+    >>> print(q.sendSync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = False))
     [ 10,  10, -10]
     
     >>> # serialize single element strings as q strings 
-    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = True))
+    >>> print(q.sendSync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = True))
     [10, 10, 10]
 
 
@@ -216,12 +216,12 @@ for ``month``\s etc.) and provides accessors which allow to convert raw data to
 
 ::
 
-    >>> v = q.sync("2001.01.01 2000.05.01 0Nd", numpy_temporals = False)
+    >>> v = q.sendSync("2001.01.01 2000.05.01 0Nd", numpy_temporals = False)
     >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QTemporalList'> dtype: int32 qtype: -14: [2001-01-01 [metadata(qtype=-14)] 2000-05-01 [metadata(qtype=-14)]
      NaT [metadata(qtype=-14)]]
     
-    >>> v = q.sync("2000.01.04D05:36:57.600 0Np", numpy_temporals = False)
+    >>> v = q.sendSync("2000.01.04D05:36:57.600 0Np", numpy_temporals = False)
     >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QTemporalList'> dtype: int64 qtype: -12: [2000-01-04T05:36:57.600000000+0100 [metadata(qtype=-12)]
      NaT [metadata(qtype=-12)]]
@@ -231,16 +231,16 @@ The IPC parser (:class:`.qreader.QReader`) can be instructed to represent the
 temporal vectors via `numpy.datetime64` or `numpy.timedelta64` arrays wrapped in
 :class:`.qcollection.QList` instances. The parsing option can be set either
 via :class:`~.qconnection.QConnection` constructor or as parameter to functions:
-(:meth:`~qpython.qconnection.QConnection.sync`) or 
+(:meth:`~qpython.qconnection.QConnection.sendSync`) or 
 (:meth:`~qpython.qconnection.QConnection.receive`).
 
 ::
     
-    >>> v = q.sync("2001.01.01 2000.05.01 0Nd", numpy_temporals = True)
+    >>> v = q.sendSync("2001.01.01 2000.05.01 0Nd", numpy_temporals = True)
     >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QList'> dtype: datetime64[D] qtype: -14: ['2001-01-01' '2000-05-01' 'NaT']
     
-    >>> v = q.sync("2000.01.04D05:36:57.600 0Np", numpy_temporals = True)
+    >>> v = q.sendSync("2000.01.04D05:36:57.600 0Np", numpy_temporals = True)
     >>> print('%s dtype: %s qtype: %d: %s' % (type(v), v.dtype, v.meta.qtype, v))
     <class 'qpython.qcollection.QList'> dtype: datetime64[ns] qtype: -12: ['2000-01-04T05:36:57.600000000+0100' 'NaT']
     

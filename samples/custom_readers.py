@@ -61,16 +61,16 @@ class ReverseStringQReader(QReader):
 
 if __name__ == '__main__':
     with qconnection.QConnection(host = 'localhost', port = 5000, reader_class = StringQReader) as q:
-        symbols = q.sync('`foo`bar')
+        symbols = q.sendSync('`foo`bar')
         print(symbols, type(symbols), type(symbols[0]))
     
-        symbol = q.sync('`foo')
+        symbol = q.sendSync('`foo')
         print(symbol, type(symbol))
     
     
     with qconnection.QConnection(host = 'localhost', port = 5000, reader_class = ReverseStringQReader) as q:
-        symbols = q.sync('`foo`bar')
+        symbols = q.sendSync('`foo`bar')
         print(symbols, type(symbols), type(symbols[0]))
     
-        symbol = q.sync('`foo')
+        symbol = q.sendSync('`foo')
         print(symbol, type(symbol))

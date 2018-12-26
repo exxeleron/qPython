@@ -26,8 +26,8 @@ Following example presents how to execute simple, synchronous query against a re
         data = q('{`int$ til x}', 10)
         print('type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data))
     
-        # simple query execution via: QConnection.sync
-        data = q.sync('{`long$ til x}', 10)
+        # simple query execution via: QConnection.sendSync
+        data = q.sendSync('{`long$ til x}', 10)
         print('type: %s, numpy.dtype: %s, meta.qtype: %s, data: %s ' % (type(data), data.dtype, data.meta.qtype, data))
     
         # low-level query and read
@@ -115,7 +115,7 @@ Following example presents how to execute simple, asynchronous query against a r
             # queryid - unique identifier of function call - used to identify
             # the result
             # a, b - parameters to the query
-            q.sync('asynchMult:{[queryid;a;b] res:a*b; (neg .z.w)(`queryid`result!(queryid;res)) }');
+            q.sendSync('asynchMult:{[queryid;a;b] res:a*b; (neg .z.w)(`queryid`result!(queryid;res)) }');
     
             t = ListenerThread(q)
             t.start()
@@ -124,7 +124,7 @@ Following example presents how to execute simple, asynchronous query against a r
                 a = random.randint(1, 100)
                 b = random.randint(1, 100)
                 print('Asynchronous call with queryid=%s with arguments: %s, %s' % (x, a, b))
-                q.async('asynchMult', x, a, b);
+                q.sendAsync('asynchMult', x, a, b);
             
             time.sleep(1)
         finally:
@@ -397,7 +397,7 @@ This example depicts how to subscribe to standard kdb+ tickerplant service:
             print('Press <ENTER> to close application')
     
             # subscribe to tick
-            response = q.sync('.u.sub', numpy.string_('trade'), numpy.string_(''))
+            response = q.sendSync('.u.sub', numpy.string_('trade'), numpy.string_(''))
             # get table model 
             if isinstance(response[1], QTable):
                 print('%s table data model: %s' % (response[0], response[1].dtype))
@@ -449,7 +449,7 @@ This example shows how to stream data to the kdb+ process using standard tickerp
                     # publish data to tick
                     # function: .u.upd
                     # table: ask
-                    self.q.sync('.u.upd', numpy.string_('ask'), self.get_ask_data())
+                    self.q.sendSync('.u.upd', numpy.string_('ask'), self.get_ask_data())
     
                     time.sleep(1)
                 except QException as e:
@@ -544,18 +544,18 @@ Please refer to :ref:`custom_type_mapping` on implementation aspects:
     
     if __name__ == '__main__':
         with qconnection.QConnection(host = 'localhost', port = 5000, reader_class = StringQReader) as q:
-            symbols = q.sync('`foo`bar')
+            symbols = q.sendSync('`foo`bar')
             print(symbols, type(symbols), type(symbols[0]))
         
-            symbol = q.sync('`foo')
+            symbol = q.sendSync('`foo')
             print(symbol, type(symbol))
         
         
         with qconnection.QConnection(host = 'localhost', port = 5000, reader_class = ReverseStringQReader) as q:
-            symbols = q.sync('`foo`bar')
+            symbols = q.sendSync('`foo`bar')
             print(symbols, type(symbols), type(symbols[0]))
         
-            symbol = q.sync('`foo')
+            symbol = q.sendSync('`foo')
             print(symbol, type(symbol))
     
 

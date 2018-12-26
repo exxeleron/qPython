@@ -14,9 +14,9 @@ a listener to await and react accordingly to received data.
 The `qPython` library provides following API methods in the 
 :class:`.QConnection` class to interact with q:
 
-- :func:`~qpython.qconnection.QConnection.sync` - executes a synchronous query 
+- :func:`~qpython.qconnection.QConnection.sendSync` - executes a synchronous query 
   against the remote q service,
-- :func:`~qpython.qconnection.QConnection.async` - executes an asynchronous 
+- :func:`~qpython.qconnection.QConnection.sendAsync` - executes an asynchronous 
   query against the remote q service,
 - :func:`~qpython.qconnection.QConnection.query` - executes a query against the
   remote q service.
@@ -37,19 +37,19 @@ Synchronous queries
 
 Executes a q expression:
         
-    >>> print(q.sync('til 10'))
+    >>> print(q.sendSync('til 10'))
     [0 1 2 3 4 5 6 7 8 9]
 
 Executes an anonymous q function with a single parameter:
 
-    >>> print(q.sync('{til x}', 10))
+    >>> print(q.sendSync('{til x}', 10))
     [0 1 2 3 4 5 6 7 8 9]
     
 Executes an anonymous q function with two parameters:
 
-    >>> print(q.sync('{y + til x}', 10, 1))
+    >>> print(q.sendSync('{y + til x}', 10, 1))
     [ 1  2  3  4  5  6  7  8  9 10]
-    >>> print(q.sync('{y + til x}', *[10, 1]))
+    >>> print(q.sendSync('{y + til x}', *[10, 1]))
     [ 1  2  3  4  5  6  7  8  9 10]
 
 The :class:`.QConnection` class implements the 
@@ -65,17 +65,17 @@ Asynchronous queries
 
 Calls a anonymous function with a single parameter:
         
-    >>> q.async('{til x}', 10)
+    >>> q.sendAsync('{til x}', 10)
 
 Executes a q expression:
 
-    >>> q.async('til 10')
+    >>> q.sendAsync('til 10')
 
 .. note:: The asynchronous query doesn't fetch the result. Query result has
           to be retrieved explicitly.
 
 In order to retrieve query result (for the 
-:func:`~qpython.qconnection.QConnection.async` or 
+:func:`~qpython.qconnection.QConnection.sendAsync` or 
 :func:`~qpython.qconnection.QConnection.query` methods), one has to call:
  
 - :func:`~qpython.qconnection.QConnection.receive` method, which reads next 
@@ -95,8 +95,8 @@ QMessage: message type: 2, data size: 13, is_compressed: False, data: 10
 >>> print(q.receive(data_only = True, raw = False))
 10
 
->>> q.sync('asynchMult:{[a;b] res:a*b; (neg .z.w)(res) }')
->>> q.async('asynchMult', 2, 3)
+>>> q.sendSync('asynchMult:{[a;b] res:a*b; (neg .z.w)(res) }')
+>>> q.sendAsync('asynchMult', 2, 3)
 >>> print(q.receive())
 6
 
@@ -113,8 +113,8 @@ Type conversions configuration
 
 Type conversion options can be overwritten while:
 
-- executing synchronous query: :meth:`~qpython.qconnection.QConnection.sync`
-- executing asynchronous query: :meth:`~qpython.qconnection.QConnection.async`
+- executing synchronous query: :meth:`~qpython.qconnection.QConnection.sendSync`
+- executing asynchronous query: :meth:`~qpython.qconnection.QConnection.sendAsync`
 - retrieving data from q: :meth:`~qpython.qconnection.QConnection.receive`
 
 These methods accepts the `options` keywords arguments::
@@ -127,7 +127,7 @@ These methods accepts the `options` keywords arguments::
     0e0006000000000000800000000001000000020000000300000004000000
 
     >>> # perform a synchronous call and parse dates vector to numpy array
-    >>> print(q.sync(query, 5, numpy_temporals = True))
+    >>> print(q.sendSync(query, 5, numpy_temporals = True))
     ['NaT' '2000-01-01' '2000-01-02' '2000-01-03' '2000-01-04' '2000-01-05']
 
     >>> # perform a synchronous call
@@ -138,9 +138,9 @@ These methods accepts the `options` keywords arguments::
      2000-01-02 [metadata(qtype=-14)] 2000-01-03 [metadata(qtype=-14)]]
     
     >>> # serialize single element strings as q characters 
-    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = False))
+    >>> print(q.sendSync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = False))
     [ 10,  10, -10]
     
     >>> # serialize single element strings as q strings 
-    >>> print(q.sync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = True))
+    >>> print(q.sendSync('{[x] type each x}', ['one', 'two', '3'], single_char_strings = True))
     [10, 10, 10]
