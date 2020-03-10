@@ -17,8 +17,8 @@
 import numpy
 cimport numpy
 
-DTYPE = numpy.int
-ctypedef numpy.int_t DTYPE_t
+DTYPE = numpy.uint
+ctypedef numpy.uint_t DTYPE_t
 DTYPE8 = numpy.int
 ctypedef numpy.uint8_t DTYPE8_t
 
