@@ -162,10 +162,12 @@ class QWriter(object):
         if not self._options.single_char_strings and len(data) == 1:
             self._write_atom(ord(data), QCHAR)
         else:
-            self._buffer.write(struct.pack('=bxi', QSTRING, len(data)))
             if isinstance(data, str):
-                self._buffer.write(data.encode(self._encoding))
+                encoded_data = data.encode(self._encoding)
+                self._buffer.write(struct.pack('=bxi', QSTRING, len(encoded_data)))
+                self._buffer.write(encoded_data)
             else:
+                self._buffer.write(struct.pack('=bxi', QSTRING, len(data)))
                 self._buffer.write(data)
 
 
