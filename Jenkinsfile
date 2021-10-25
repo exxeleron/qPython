@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'python:2-alpine'
+            image 'research/python-env:bf9b6284fbc13ce83e2a874f04506a02943c85cc'
         }
     }
     stages {
