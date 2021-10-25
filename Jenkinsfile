@@ -7,17 +7,22 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo ">> Bulding"
+                echo ">> Building..."
             }
         }
         stage('Test') {
             steps {
-                sh 'py.test --junit-xml test-reports/results.xml tests'
+                sh 'tox'
             }
             post {
                 always {
                     junit 'test-reports/results.xml'
                 }
+            }
+        }
+        stage('Publish') {
+            steps {
+                echo ">> Publishing..."
             }
         }
     }
