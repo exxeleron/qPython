@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'python:3.9.7-buster'
+            image 'fedorapython/fedora-python-tox:amd64'
         }
     }
     stages {
