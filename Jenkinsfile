@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'fedorapython/fedora-python-tox:amd64'
+            image 'research/python-qpython-env:99fb7f9cbe9720187984dc160e78742876bc9007'
         }
     }
     stages {
