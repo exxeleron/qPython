@@ -15,6 +15,7 @@
 #
 
 import binascii
+import os
 import sys
 if sys.version > '3':
     long = int
@@ -24,6 +25,8 @@ from qpython import qwriter
 from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QDictionary, qtable, QKeyedTable
 from qpython.qtemporal import qtemporal, to_raw_qtemporal, array_to_raw_qtemporal
+
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 
 BINARY = OrderedDict()
 
@@ -341,7 +344,7 @@ EXPRESSIONS = OrderedDict((
 
 
 def init():
-    with open('tests/QExpressions3.out', 'rb') as f:
+    with open(os.path.join(TEST_DATA_DIR, 'tests/QExpressions3.out'), 'rb') as f:
         while True:
             query = f.readline().strip()
             binary = f.readline().strip()

@@ -15,6 +15,7 @@
 #
 
 import binascii
+import os
 import struct
 import sys
 try:
@@ -31,6 +32,7 @@ from qpython.qtype import *  # @UnusedWildImport
 from qpython.qcollection import qlist, QList, QTemporalList, QDictionary, qtable, QKeyedTable
 from qpython.qtemporal import qtemporal, QTemporal
 
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 
 
 EXPRESSIONS = OrderedDict((
@@ -291,7 +293,7 @@ def compare(left, right):
 def test_reading():
     BINARY = OrderedDict()
 
-    with open('tests/QExpressions3.out', 'rb') as f:
+    with open(os.path.join(TEST_DATA_DIR, 'QExpressions3.out'), 'rb') as f:
         while True:
             query = f.readline().strip()
             binary = f.readline().strip()
