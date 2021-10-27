@@ -344,7 +344,7 @@ EXPRESSIONS = OrderedDict((
 
 
 def init():
-    with open(os.path.join(TEST_DATA_DIR, 'tests/QExpressions3.out'), 'rb') as f:
+    with open(os.path.join(TEST_DATA_DIR, 'QExpressions3.out'), 'rb') as f:
         while True:
             query = f.readline().strip()
             binary = f.readline().strip()
