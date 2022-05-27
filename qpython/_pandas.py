@@ -111,9 +111,12 @@ class PandasQReader(QReader):
         qlist = QReader._read_list(self, qtype = qtype)
 
         if self._options.pandas:
-            if -abs(qtype) not in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN, QSYMBOL]:
+            if -abs(qtype) not in [QMONTH, QDATE, QDATETIME, QMINUTE, QSECOND, QTIME, QTIMESTAMP, QTIMESPAN, QSYMBOL, QBOOL]:
                 null = QNULLMAP[-abs(qtype)][1]
-                ps = pandas.Series(data = qlist).replace(null, numpy.NaN)
+                ps = pandas.Series(data=qlist)
+                mask_array = numpy.array(ps) == null
+                if len(ps[mask_array]) > 0:
+                    ps[mask_array] = numpy.nan
             else:
                 ps = pandas.Series(data = qlist)
 
@@ -121,6 +124,7 @@ class PandasQReader(QReader):
             return ps
         else:
             return qlist
+
 
 
     @parse(QGENERAL_LIST)
