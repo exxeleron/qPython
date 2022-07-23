@@ -16,9 +16,9 @@
 
 import struct
 import sys
-if sys.version > '3':
-    from sys import intern
-    unicode = str
+
+from sys import intern
+unicode = str
 
 from qpython import MetaData, CONVERSION_OPTIONS
 from qpython.qtype import *  # @UnusedWildImport
@@ -30,7 +30,7 @@ try:
 except:
     from qpython.utils import uncompress
 
-
+CHUNK_SIZE = 4096
 
 class QReaderException(Exception):
     '''
@@ -167,7 +167,7 @@ class QReader(object):
         # skip 1 byte
         self._buffer.skip()
 
-        message_size = self._buffer.get_int()
+        message_size = self._buffer.get_size()
         return QMessage(None, message_type, message_size, message_compressed)
 
 
@@ -197,14 +197,14 @@ class QReader(object):
         if is_compressed:
             if self._stream:
                 self._buffer.wrap(self._read_bytes(4))
-            uncompressed_size = -8 + self._buffer.get_int()
+            uncompressed_size = -8 + self._buffer.get_size()
             compressed_data = self._read_bytes(message_size - 12) if self._stream else self._buffer.raw(message_size - 12)
 
             raw_data = numpy.frombuffer(compressed_data, dtype = numpy.uint8)
             if  uncompressed_size <= 0:
                 raise QReaderException('Error while data decompression.')
 
-            raw_data = uncompress(raw_data, numpy.intc(uncompressed_size))
+            raw_data = uncompress(raw_data, numpy.uintc(uncompressed_size))
             raw_data = numpy.ndarray.tostring(raw_data)
             self._buffer.wrap(raw_data)
         elif self._stream:
@@ -243,7 +243,7 @@ class QReader(object):
     @parse(QSTRING)
     def _read_string(self, qtype = QSTRING):
         self._buffer.skip()  # ignore attributes
-        length = self._buffer.get_int()
+        length = self._buffer.get_size()
         return self._buffer.raw(length) if length > 0 else b''
 
 
@@ -284,7 +284,7 @@ class QReader(object):
 
     def _read_list(self, qtype):
         self._buffer.skip()  # ignore attributes
-        length = self._buffer.get_int()
+        length = self._buffer.get_size()
         conversion = PY_TYPE.get(-qtype, None)
 
         if qtype == QSYMBOL_LIST:
@@ -333,7 +333,7 @@ class QReader(object):
     @parse(QGENERAL_LIST)
     def _read_general_list(self, qtype = QGENERAL_LIST):
         self._buffer.skip()  # ignore attributes
-        length = self._buffer.get_int()
+        length = self._buffer.get_size()
 
         return [self._read_object() for x in range(length)]
 
@@ -373,7 +373,7 @@ class QReader(object):
 
     @parse(QPROJECTION)
     def _read_projection(self, qtype = QPROJECTION):
-        length = self._buffer.get_int()
+        length = self._buffer.get_size()
         parameters = [ self._read_object() for x in range(length) ]
         return QProjection(parameters)
 
@@ -384,12 +384,32 @@ class QReader(object):
 
         if length == 0:
             return b''
-        else:
+        elif length <= CHUNK_SIZE:
             data = self._stream.read(length)
+        else:
+            data = self._read_in_chunks(length)
 
-        if len(data) == 0:
+        if not data:
             raise QReaderException('Error while reading data')
         return data
+
+    def _read_in_chunks(self, length):                
+        from io import StringIO ## for Python 3
+
+        # for large messages, read from the stream in chunks        
+        remaining = length
+        buff = StringIO()
+
+        while remaining > 0:
+            chunk = self._stream.read(min(remaining, CHUNK_SIZE))
+
+            if chunk:
+                remaining = remaining - len(chunk)
+                buff.write(chunk)
+            else:
+                break
+
+        data = buff.getvalue()
 
 
 
@@ -498,6 +518,15 @@ class QReader(object):
             :returns: single integer
             '''
             return self.get('i')
+
+        
+        def get_size(self):
+            '''
+            Gets a single 32-bit unsinged integer from the buffer.
+            
+            :returns: single unsigned integer
+            '''
+            return self.get('I')
 
 
         def get_symbol(self):

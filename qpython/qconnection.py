@@ -65,6 +65,8 @@ class QConnection(object):
      - `encoding` (`string`) - string encoding for data deserialization
      - `reader_class` (subclass of `QReader`) - data deserializer
      - `writer_class` (subclass of `QWriter`) - data serializer
+     - `capacity_byte` (byte) - handshake capacity byte. Use it only if you
+        want to override the default. See https://code.kx.com/v2/basics/ipc/#handshake
     :Options: 
      - `raw` (`boolean`) - if ``True`` returns raw data chunk instead of parsed 
        data, **Default**: ``False``
@@ -78,11 +80,12 @@ class QConnection(object):
     '''
 
 
-    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', reader_class = None, writer_class = None, **options):
+    def __init__(self, host, port, username = None, password = None, timeout = None, encoding = 'latin-1', reader_class = None, writer_class = None, capacity_byte = b'\3', **options):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
+        self.capacity_byte = capacity_byte
 
         self._connection = None
         self._connection_file = None
@@ -186,7 +189,7 @@ class QConnection(object):
         '''Performs a IPC protocol handshake.'''
         credentials = (self.username if self.username else '') + ':' + (self.password if self.password else '')
         credentials = credentials.encode(self._encoding)
-        self._connection.send(credentials + b'\3\0')
+        self._connection.send(credentials + self.capacity_byte + b'\0')
         response = self._connection.recv(1)
 
         if len(response) != 1:
