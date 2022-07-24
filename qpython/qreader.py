@@ -409,7 +409,7 @@ class QReader(object):
             else:
                 break
 
-        data = buff.getvalue()
+        return buff.getvalue()
 
 
 
