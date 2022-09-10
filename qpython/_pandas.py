@@ -82,11 +82,11 @@ class PandasQReader(QReader):
                 if isinstance(data[i], str):
                     # convert character list (represented as string) to numpy representation
                     meta[column_name] = QSTRING
-                    odict[column_name] = pandas.Series(list(data[i]), dtype = numpy.str).replace(b' ', numpy.nan)
+                    odict[column_name] = pandas.Series(list(data[i]), dtype = str).replace(b' ', numpy.nan)
                 elif isinstance(data[i], bytes):
                     # convert character list (represented as string) to numpy representation
                     meta[column_name] = QSTRING
-                    odict[column_name] = pandas.Series(list(data[i].decode()), dtype = numpy.str).replace(b' ', numpy.nan)
+                    odict[column_name] = pandas.Series(list(data[i].decode()), dtype = str).replace(b' ', numpy.nan)
                 elif isinstance(data[i], (list, tuple)):
                     meta[column_name] = QGENERAL_LIST
                     tarray = numpy.ndarray(shape = len(data[i]), dtype = numpy.dtype('O'))
@@ -94,8 +94,12 @@ class PandasQReader(QReader):
                         tarray[j] = data[i][j]
                     odict[column_name] = tarray
                 else:
-                    meta[column_name] = data[i].meta.qtype
-                    odict[column_name] = data[i]
+                    meta[column_name] = data[i].meta.qtype                    
+                    if data[i].meta.qtype in {abs(QSYMBOL)}:
+                        odict[column_name] = data[i].map(lambda x: x.decode('UTF-8'))
+                    else:
+                        odict[column_name] = data[i]
+                    
 
             df = pandas.DataFrame(odict)
             df.meta = meta

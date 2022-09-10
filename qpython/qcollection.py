@@ -25,12 +25,14 @@ class QList(numpy.ndarray):
     def _meta_init(self, **meta):
         '''Initialises the meta-information.'''
         self.meta = MetaData(**meta)
+    
+    #This behaviour is different from ndarray which returns an array companring each element with the input
+    #This causes issues in pandas when it tries to create an array mask by using  ==
+    # def __eq__(self, other):
+    #     return numpy.array_equal(self, other)
 
-    def __eq__(self, other):
-        return numpy.array_equal(self, other)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    # def __ne__(self, other):
+    #     return not self.__eq__(other)
 
     def __hash__(self):
         return hash((self.dtype, self.meta.qtype, self.tostring()))
@@ -294,11 +296,12 @@ class QTable(numpy.recarray):
     def _meta_init(self, **meta):
         self.meta = MetaData(**meta)
 
-    def __eq__(self, other):
-        return numpy.array_equal(self, other)
+    #Behaviour different from recarray: returns a bool istead of array of same length
+    # def __eq__(self, other):
+    #     return numpy.array_equal(self, other)
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    # def __ne__(self, other):
+    #     return not self.__eq__(other)
 
     def __array_finalize__(self, obj):
         self.meta = MetaData() if obj is None else getattr(obj, 'meta', MetaData())
@@ -437,7 +440,9 @@ class QKeyedTable(object):
         return '%s!%s' % (self.keys, self.values)
 
     def __eq__(self, other):
-        return isinstance(other, QKeyedTable) and numpy.array_equal(self.keys, other.keys) and numpy.array_equal(self.values, other.values)
+        if not isinstance(other, QKeyedTable):
+            return False
+        return (self.keys == other.keys) & (self.values == other.values)
 
     def __ne__(self, other):
         return not self.__eq__(other)
